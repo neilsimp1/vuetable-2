@@ -1,0 +1,23 @@
+{
+  "name": "vuetabler",
+  "version": "1.0.0",
+  "description": "A Vue.js 2.0 component for data table, forked from https://github.com/ratiw/vuetable-2",
+  "main": "Vuetabler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neilsimp1/vuetabler.git"
+  },
+  "author": "neilsimp1@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/neilsimp1/vuetabler/issues"
+  },
+  "homepage": "https://github.com/neilsimp1/vuetabler#readme",
+  "dependencies": {
+    "vue-class-component": "^4.4.0",
+    "vue-resource": "^1.2.0"
+  }
+}
