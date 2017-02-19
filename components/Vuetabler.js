@@ -3,7 +3,7 @@ const VueResource = require('vue-resource');
 
 Vue.use(VueResource);
 
-module.exports = {
+const Vuetabler = {
     template: `
         <table :class="['vuetable', css.tableClass]">
         <thead>
@@ -763,7 +763,9 @@ module.exports = {
             }
         }
     },
-}
+};
+
+module.exports.Vuetabler = Vuetabler;
 
 /*<!-- <style>
   [v-cloak] {
