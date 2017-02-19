@@ -5,11 +5,12 @@ const VueTabler = require('./components/VueTabler');
 // import VuetablePaginationInfoMixin from './components/VuetablePaginationInfoMixin.vue';
 // import VuetablePaginationMixin from './components/VuetablePaginationMixin.vue';
 
-module.exports = {
-    VueTabler//,
-    // VuetablePagination,
-    // VuetablePaginationDropdown,
-    // VuetablePaginationInfo,
-    // VuetablePaginationInfoMixin,
-    // VuetablePaginationMixin
-};
+// module.exports = {
+//     VueTabler//,
+//     // VuetablePagination,
+//     // VuetablePaginationDropdown,
+//     // VuetablePaginationInfo,
+//     // VuetablePaginationInfoMixin,
+//     // VuetablePaginationMixin
+// };
+module.exports = VueTabler;

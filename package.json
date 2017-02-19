@@ -1,23 +1,28 @@
 {
-  "name": "vuetabler",
-  "version": "1.0.0",
-  "description": "A Vue.js 2.0 component for data table, forked from https://github.com/ratiw/vuetable-2",
-  "main": "Vuetabler.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/neilsimp1/vuetabler.git"
-  },
-  "author": "neilsimp1@gmail.com",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/neilsimp1/vuetabler/issues"
-  },
-  "homepage": "https://github.com/neilsimp1/vuetabler#readme",
-  "dependencies": {
-    "vue": "^2.1.10",
-    "vue-resource": "^1.2.0"
-  }
+    "name": "vuetabler",
+    "version": "1.0.0",
+    "description": "A Vue.js 2.0 component for data table, forked from https://github.com/ratiw/vuetable-2",
+    "main": "dist/vuetabler.js",
+    "scripts": {
+        "build": "webpack --progress --display-error-details",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/neilsimp1/vuetabler.git"
+    },
+    "author": "neilsimp1@gmail.com",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/neilsimp1/vuetabler/issues"
+    },
+    "homepage": "https://github.com/neilsimp1/vuetabler#readme",
+    "dependencies": {
+        "vue": "^2.1.10"
+    },
+    "devDependencies": {
+        "vue-loader": "^11.1.0",
+        "vue-template-compiler": "^2.1.10",
+        "webpack": "^2.2.1"
+    }
 }
