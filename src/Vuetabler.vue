@@ -45,7 +45,10 @@
         </thead>
         <tbody v-cloak>
             <template v-for="(item, index) in tableData">
-                <tr @dblclick="onRowDoubleClicked(item, $event)" @click="onRowClicked(item, $event)" :render="onRowChanged(item)" :class="onRowClass(item, index)">
+                <tr @dblclick="onRowDoubleClicked(item, $event)"
+                        @click="onRowClicked(item, $event)"
+                        :render="onRowChanged(item)"
+                        :class="onRowClass(item, index)">
                     <template v-for="field in fields">
                         <template v-if="field.visible">
                             <template v-if="isSpecialField(field.name)">
@@ -150,9 +153,17 @@
                 type: Array,
                 default: function() { return [] }
             },
+            selectrows: {
+                type: Boolean,
+                default: false
+            },
             sortOrder: {
                 type: Array,
                 default: function() { return [] }
+            },
+            name: {
+                type: String,
+                default: 'vuetabler'
             },
             multiSort: {
                 type: Boolean,
@@ -197,6 +208,7 @@
                         descendingIcon: 'blue chevron down icon',
                         detailRowClass: 'vuetable-detail-row',
                         sortHandleIcon: 'grey sidebar icon',
+                        selectedClass: 'selected'
                     }
                 }
             },
@@ -207,7 +219,7 @@
         },
         data: function() {
             return {
-                eventPrefix: 'vuetable:',
+                eventPrefix: this.name + ':',
                 tableData: null,
                 tablePagination: null,
                 currentPage: 1,
@@ -255,6 +267,7 @@
                             dataClass: '',
                             callback: null,
                             visible: true,
+                            selected: false
                         };
                     }
                     else{
@@ -266,6 +279,7 @@
                             dataClass: (field.dataClass === undefined) ? '' : field.dataClass,
                             callback: (field.callback === undefined) ? '' : field.callback,
                             visible: (field.visible === undefined) ? true : field.visible,
+                            selected: false
                         };
                     }
                     Vue.set(self.fields, i, obj);
@@ -628,93 +642,100 @@
                 this.$emit('vuetable:checkbox-toggled-all', isChecked)
             },
             gotoPreviousPage: function() {
-                if (this.currentPage > 1) {
-                    this.currentPage--
-                    this.loadData()
+                if(this.currentPage > 1){
+                    this.currentPage--;
+                    this.loadData();
                 }
             },
             gotoNextPage: function() {
-                if (this.currentPage < this.tablePagination.last_page) {
-                    this.currentPage++
-                    this.loadData()
+                if(this.currentPage < this.tablePagination.last_page){
+                    this.currentPage++;
+                    this.loadData();
                 }
             },
             gotoPage: function(page) {
-                if (page != this.currentPage && (page > 0 && page <= this.tablePagination.last_page)) {
-                    this.currentPage = page
-                    this.loadData()
+                if(page != this.currentPage && (page > 0 && page <= this.tablePagination.last_page)){
+                    this.currentPage = page;
+                    this.loadData();
                 }
             },
             isVisibleDetailRow: function(rowId) {
-                return this.visibleDetailRows.indexOf(rowId) >= 0
+                return this.visibleDetailRows.indexOf(rowId) >= 0;
             },
             showDetailRow: function(rowId) {
-                if (!this.isVisibleDetailRow(rowId)) {
-                    this.visibleDetailRows.push(rowId)
-                }
+                if(!this.isVisibleDetailRow(rowId)) this.visibleDetailRows.push(rowId);
             },
             hideDetailRow: function(rowId) {
-                if (this.isVisibleDetailRow(rowId)) {
-                    this.visibleDetailRows.splice(
-                        this.visibleDetailRows.indexOf(rowId),
-                        1
-                    )
-                }
+                if(this.isVisibleDetailRow(rowId)) this.visibleDetailRows.splice(this.visibleDetailRows.indexOf(rowId), 1);
             },
             toggleDetailRow: function(rowId) {
-                if (this.isVisibleDetailRow(rowId)) {
-                    this.hideDetailRow(rowId)
-                } else {
-                    this.showDetailRow(rowId)
-                }
+                if(this.isVisibleDetailRow(rowId)) this.hideDetailRow(rowId);
+                else this.showDetailRow(rowId);
             },
             onRowClass: function(dataItem, index) {
-                let func = this.rowClassCallback.trim()
+                let func = this.rowClassCallback.trim();
+                let _class = '';
+                if(dataItem.selected) _class = 'selected ';
 
-                if (func !== '' && typeof this.$parent[func] === 'function') {
-                    return this.$parent[func].call(this.$parent, dataItem, index)
+                if(func !== '' && typeof this.$parent[func] === 'function'){
+                    _class += this.$parent[func].call(this.$parent, dataItem, index);
+                    return _class;
                 }
-                return ''
+                return _class;
             },
             onRowChanged: function(dataItem) {
-                this.fireEvent('row-changed', dataItem)
-                return true
+                this.fireEvent('row-changed', dataItem);
+                return true;
             },
-            onRowClicked: function(dataItem, event) {
-                this.$emit(this.eventPrefix + 'row-clicked', dataItem, event)
-                return true
+            onRowClicked: function(dataItem, e) {
+                if(this.selectrows){
+                    if(e.shiftKey) this.selectRow_shift(dataItem);
+                    if(e.ctrlKey) this.selectRow_ctrl(dataItem);
+                    else this.selectRow(dataItem);
+                }
+
+                this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
+                return true;
             },
-            onRowDoubleClicked: function(dataItem, event) {
-                this.$emit(this.eventPrefix + 'row-dblclicked', dataItem, event)
+            onRowDoubleClicked: function(dataItem, e) {
+                this.$aroot.$emit(this.eventPrefix + 'row-dblclicked', dataItem, e);
             },
-            onDetailRowClick: function(dataItem, event) {
-                this.$emit(this.eventPrefix + 'detail-row-clicked', dataItem, event)
+            onDetailRowClick: function(dataItem, e) {
+                this.$root.$emit(this.eventPrefix + 'detail-row-clicked', dataItem, e);
             },
-            onCellClicked: function(dataItem, field, event) {
-                this.$emit(this.eventPrefix + 'cell-clicked', dataItem, field, event)
+            onCellClicked: function(dataItem, field, e) {
+                this.$root.$emit(this.eventPrefix + 'cell-clicked', dataItem, field, e);
             },
-            onCellDoubleClicked: function(dataItem, field, event) {
-                this.$emit(this.eventPrefix + 'cell-dblclicked', dataItem, field, event)
+            onCellDoubleClicked: function(dataItem, field, e) {
+                this.$root.$emit(this.eventPrefix + 'cell-dblclicked', dataItem, field, e);
             },
+
             /*
                 * API for externals
                 */
             changePage: function(page) {
-                if (page === 'prev') {
-                    this.gotoPreviousPage()
-                } else if (page === 'next') {
-                    this.gotoNextPage()
-                } else {
-                    this.gotoPage(page)
-                }
+                if(page === 'prev') this.gotoPreviousPage();
+                else if(page === 'next')  this.gotoNextPage();
+                else this.gotoPage(page);
             },
             reload: function() {
-                this.loadData()
+                this.loadData();
             },
             refresh: function() {
-                this.currentPage = 1
-                this.loadData()
+                this.currentPage = 1;
+                this.loadData();
             },
+            selectRow: function(dataItem) {
+                for(let i = 0; i < this.tableData.length; i++){
+                    this.tableData[i].selected = dataItem.name === this.tableData[i].name;
+                }
+            },
+            selectRow_ctrl: function() {
+                
+            },
+            selectRow_shift: function() {
+                
+            }
         },
         watch: {
             multiSort: function(newVal, oldVal) {
