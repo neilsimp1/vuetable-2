@@ -3,43 +3,43 @@
         <thead>
             <tr>
                 <template v-for="field in fields">
-                <template v-if="field.visible">
-                    <template v-if="isSpecialField(field.name)">
-                        <th v-if="extractName(field.name) == '__checkbox'" :class="['vuetable-th-checkbox-'+trackBy, field.titleClass]">
-                            <input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
-                        </th>
-                        <th v-if="extractName(field.name) == '__component'"
-                                @click="orderBy(field, $event)"
-                                :class="['vuetable-th-component-'+trackBy, field.titleClass, {'sortable': isSortable(field)}]">
-                            {{ field.title || '' }}
-                            <i v-if="isInCurrentSortGroup(field) && field.title"
-                                :class="sortIcon(field)"
-                                :style="{opacity: sortIconOpacity(field)}"></i>
-                        </th>
-                        <th v-if="extractName(field.name) == '__slot'"
-                                @click="orderBy(field, $event)"
-                                :class="['vuetable-th-slot-'+extractArgs(field.name), field.titleClass, {'sortable': isSortable(field)}]">
-                            {{ field.title || '' }}
-                            <i v-if="isInCurrentSortGroup(field) && field.title"
-                                :class="sortIcon(field)"
-                                :style="{opacity: sortIconOpacity(field)}"></i>
-                        </th>
-                        <th v-if="extractName(field.name) == '__sequence'"
-                            :class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''">
-                        </th>
-                        <th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
-                            :class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''">
-                        </th>
+                    <template v-if="field.visible">
+                        <template v-if="isSpecialField(field.name)">
+                            <th v-if="extractName(field.name) == '__checkbox'" :class="['vuetable-th-checkbox-'+trackBy, field.titleClass]">
+                                <input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
+                            </th>
+                            <th v-if="extractName(field.name) == '__component'"
+                                    @click="orderBy(field, $event)"
+                                    :class="['vuetable-th-component-'+trackBy, field.titleClass, {'sortable': isSortable(field)}]">
+                                {{ field.title || '' }}
+                                <i v-if="isInCurrentSortGroup(field) && field.title"
+                                    :class="sortIcon(field)"
+                                    :style="{opacity: sortIconOpacity(field)}"></i>
+                            </th>
+                            <th v-if="extractName(field.name) == '__slot'"
+                                    @click="orderBy(field, $event)"
+                                    :class="['vuetable-th-slot-'+extractArgs(field.name), field.titleClass, {'sortable': isSortable(field)}]">
+                                {{ field.title || '' }}
+                                <i v-if="isInCurrentSortGroup(field) && field.title"
+                                    :class="sortIcon(field)"
+                                    :style="{opacity: sortIconOpacity(field)}"></i>
+                            </th>
+                            <th v-if="extractName(field.name) == '__sequence'"
+                                :class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''">
+                            </th>
+                            <th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
+                                :class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''">
+                            </th>
+                        </template>
+                        <template v-else>
+                            <th @click="orderBy(field, $event)"
+                                :id="'_' + field.name"
+                                :class="['vuetable-th-'+field.name, field.titleClass,  {'sortable': isSortable(field)}]">
+                                {{  getTitle(field) }}&nbsp;
+                                <i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
+                            </th>
+                        </template>
                     </template>
-                    <template v-else>
-                        <th @click="orderBy(field, $event)"
-                            :id="'_' + field.name"
-                            :class="['vuetable-th-'+field.name, field.titleClass,  {'sortable': isSortable(field)}]">
-                            {{  getTitle(field) }}&nbsp;
-                            <i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
-                        </th>
-                    </template>
-                </template>
                 </template>
             </tr>
         </thead>
@@ -97,13 +97,11 @@
 </template>
 
 <script>
-    //import * as Vue from 'vue';
     const Vue = require('vue/dist/vue.common.js');
     //const VueResource = require('vue-resource');
 
     //Vue.use(VueResource);
 
-    // const Vuetabler = new Vue('vuetabler', {
     module.exports = {
         props: {
             fields: {
@@ -128,7 +126,7 @@
             },
             queryParams: {
                 type: Object,
-                default: function () {
+                default: function() {
                     return {
                         sort: 'sort',
                         page: 'page',
@@ -138,33 +136,27 @@
             },
             appendParams: {
                 type: Object,
-                default: function () {
-                    return {}
-                }
+                default: function() { return {} }
             },
             httpOptions: {
                 type: Object,
-                default: function () {
-                    return {}
-                }
+                default: function() { return {} }
             },
             perPage: {
                 type: Number,
-                default: function () {
-                    return 10
-                }
+                default: function() { return 10 }
+            },
+            rows: {
+                type: Array,
+                default: function() { return [] }
             },
             sortOrder: {
                 type: Array,
-                default: function () {
-                    return []
-                }
+                default: function() { return [] }
             },
             multiSort: {
                 type: Boolean,
-                default: function () {
-                    return false
-                }
+                default: function() { return false }
             },
             /*
                 * physical key that will trigger multi-sort option
@@ -178,6 +170,10 @@
             rowClassCallback: {
                 type: String,
                 default: ''
+            },
+            rows: {
+                type: Array,
+                default: function() { return [] }
             },
             detailRowComponent: {
                 type: String,
@@ -193,7 +189,7 @@
             },
             css: {
                 type: Object,
-                default: function () {
+                default: function() {
                     return {
                         tableClass: 'ui blue selectable celled stackable attached table',
                         loadingClass: 'loading',
@@ -209,50 +205,49 @@
                 default: false
             }
         },
-        data: function () {
+        data: function() {
             return {
                 eventPrefix: 'vuetable:',
-                localData: false,
                 tableData: null,
                 tablePagination: null,
                 currentPage: 1,
                 selectedTo: [],
-                visibleDetailRows: [],
-                rows: [],
+                visibleDetailRows: []
             }
         },
-        created: function () {
-            this.normalizeFields()
-            if (this.loadOnStart) {
-                this.loadData()
-            }
+        created: function() {
+            this.normalizeFields();
+            if(this.loadOnStart) this.loadData();
         },
         computed: {
-            useDetailRow: function () {
-                if (this.tableData && this.tableData[0] && typeof this.tableData[0][this.trackBy] === 'undefined') {
-                    this.warn('You need to define "detail-row-id" in order for detail-row feature to work!')
-                    return false
+            useDetailRow: function() {
+                if(this.tableData && this.tableData[0] && typeof this.tableData[0][this.trackBy] === 'undefined'){
+                    this.warn('You need to define "detail-row-id" in order for detail-row feature to work!');
+                    return false;
                 }
 
-                return this.detailRowComponent !== ''
+                return this.detailRowComponent !== '';
             },
-            countVisibleFields: function () {
-                return this.fields.filter(function (field) {
-                    return field.visible
-                }).length
+            countVisibleFields: function() {
+                return this.fields.filter(function(field) {
+                    return field.visible;
+                }).length;
+            },
+            localData: function() {
+                return !!this.rows.length;
             }
         },
         methods: {
-            normalizeFields: function () {
-                if (typeof (this.fields) === 'undefined') {
-                    this.warn('You need to provide "fields" prop.')
-                    return
+            normalizeFields: function() {
+                if(typeof (this.fields) === 'undefined'){
+                    this.warn('You need to provide "fields" prop.');
+                    return;
                 }
 
-                let self = this
-                let obj
-                this.fields.forEach(function (field, i) {
-                    if (typeof (field) === 'string') {
+                let self = this;
+                let obj;
+                this.fields.forEach(function(field, i) {
+                    if(typeof (field) === 'string'){
                         obj = {
                             name: field,
                             title: self.setTitle(field),
@@ -260,8 +255,9 @@
                             dataClass: '',
                             callback: null,
                             visible: true,
-                        }
-                    } else {
+                        };
+                    }
+                    else{
                         obj = {
                             name: field.name,
                             title: (field.title === undefined) ? self.setTitle(field.name) : field.title,
@@ -270,49 +266,42 @@
                             dataClass: (field.dataClass === undefined) ? '' : field.dataClass,
                             callback: (field.callback === undefined) ? '' : field.callback,
                             visible: (field.visible === undefined) ? true : field.visible,
-                        }
+                        };
                     }
-                    Vue.set(self.fields, i, obj)
+                    Vue.set(self.fields, i, obj);
                 })
             },
-            setTitle: function (str) {
-                if (this.isSpecialField(str)) {
-                    return ''
-                }
-
-                return this.titleCase(str)
+            setTitle: function(str) {
+                if(this.isSpecialField(str)) return '';
+                return this.titleCase(str);
             },
-            getTitle: function (field) {
-                if (typeof field.title === 'undefined') {
-                    return field.name.replace('.', ' ')
-                }
-
-                return field.title
+            getTitle: function(field) {
+                if(typeof field.title === 'undefined') return field.name.replace('.', ' ');
+                return field.title;
             },
-            isSpecialField: function (fieldName) {
-                return fieldName.slice(0, 2) === '__'
+            isSpecialField: function(fieldName) {
+                return fieldName.slice(0, 2) === '__';
             },
-            titleCase: function (str) {
-                return str.replace(/\w+/g, function (txt) {
-                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-                })
+            titleCase: function(str) {
+                return str.replace(/\w+/g, function(txt) {
+                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                });
             },
-            camelCase: function (str, delimiter = '_') {
-                let self = this
-                return str.split(delimiter).map(function (item) {
-                    return self.titleCase(item)
-                }).join('')
+            camelCase: function(str, delimiter = '_') {
+                let self = this;
+                return str.split(delimiter).map(function(item) {
+                    return self.titleCase(item);
+                }).join('');
             },
-            notIn: function (str, arr) {
+            notIn: function(str, arr) {
                 return arr.indexOf(str) === -1
             },
-            loadData: function (success = this.loadSuccess, failed = this.loadFailed) {
+            loadData: function(success = this.loadSuccess, failed = this.loadFailed) {
+                this.fireEvent('loading');
                 if(this.localData){
                     success();
                 }
                 else{
-                    // this.fireEvent('loading')
-
                     // this.httpOptions['params'] = this.getAllQueryParams()
 
                     // Vue.http.get(this.apiUrl, this.httpOptions).then(
@@ -321,8 +310,8 @@
                     // )
                 }
             },
-            loadSuccess: function (response) {
-                this.fireEvent('load-success', response)
+            loadSuccess: function(response) {
+                this.fireEvent('load-success', response);
 
                 if(this.localData){
                     this.tableData = this.rows;
@@ -341,62 +330,48 @@
                     // }
                 }
 
-                this.$nextTick(function () {
-                    this.fireEvent('pagination-data', this.tablePagination)
-                    this.fireEvent('loaded')
+                this.$nextTick(function() {
+                    // this.fireEvent('pagination-data', this.tablePagination);
+                    this.fireEvent('loaded');
                 })
             },
-            loadFailed: function (response) {
-                this.fireEvent('load-error', response)
-                this.fireEvent('loaded')
+            loadFailed: function(response) {
+                this.fireEvent('load-error', response);
+                this.fireEvent('loaded');
             },
-            transform: function (data) {
-                let func = 'transform'
-
-                if (this.parentFunctionExists(func)) {
-                    return this.$parent[func].call(this.$parent, data)
-                }
-
+            transform: function(data) {
+                let func = 'transform';
+                if(this.parentFunctionExists(func)) return this.$parent[func].call(this.$parent, data);
                 return data
             },
-            parentFunctionExists: function (func) {
-                return (func !== '' && typeof this.$parent[func] === 'function')
+            parentFunctionExists: function(func) {
+                return (func !== '' && typeof this.$parent[func] === 'function');
             },
-            fireEvent: function (eventName, args) {
-                this.$emit(this.eventPrefix + eventName, args)
+            fireEvent: function(eventName, args) {
+                this.$emit(this.eventPrefix + eventName, args);
             },
-            warn: function (msg) {
-                if (!this.silent) {
-                    console.warn(msg)
-                }
+            warn: function(msg) {
+                if(!this.silent) console.warn(msg);
             },
-            getAllQueryParams: function () {
-                let params = {}
-                params[this.queryParams.sort] = this.getSortParam()
-                params[this.queryParams.page] = this.currentPage
-                params[this.queryParams.perPage] = this.perPage
+            getAllQueryParams: function() {
+                let params = {};
+                params[this.queryParams.sort] = this.getSortParam();
+                params[this.queryParams.page] = this.currentPage;
+                params[this.queryParams.perPage] = this.perPage;
 
-                for (let x in this.appendParams) {
-                    params[x] = this.appendParams[x]
-                }
+                for(let x in this.appendParams) params[x] = this.appendParams[x];
 
                 return params
             },
-            getSortParam: function () {
-                if (!this.sortOrder || this.sortOrder.field == '') {
-                    return ''
-                }
-
-                if (typeof this.$parent['getSortParam'] == 'function') {
-                    return this.$parent['getSortParam'].call(this.$parent, this.sortOrder)
-                }
-
-                return this.getDefaultSortParam()
+            getSortParam: function() {
+                if(!this.sortOrder || this.sortOrder.field == '') return '';
+                if(typeof this.$parent['getSortParam'] == 'function') return this.$parent['getSortParam'].call(this.$parent, this.sortOrder);
+                return this.getDefaultSortParam();
             },
-            getDefaultSortParam: function () {
+            getDefaultSortParam: function() {
                 let result = '';
 
-                for (let i = 0; i < this.sortOrder.length; i++) {
+                for(let i = 0; i < this.sortOrder.length; i++){
                     let fieldName = (typeof this.sortOrder[i].sortField === 'undefined')
                         ? this.sortOrder[i].field
                         : this.sortOrder[i].sortField;
@@ -406,35 +381,29 @@
 
                 return result;
             },
-            extractName: function (string) {
-                return string.split(':')[0].trim()
+            extractName: function(string) {
+                return string.split(':')[0].trim();
             },
-            extractArgs: function (string) {
-                return string.split(':')[1]
+            extractArgs: function(string) {
+                return string.split(':')[1];
             },
-            isSortable: function (field) {
-                return !(typeof field.sortField === 'undefined')
+            isSortable: function(field) {
+                return !(typeof field.sortField === 'undefined');
             },
-            isInCurrentSortGroup: function (field) {
+            isInCurrentSortGroup: function(field) {
                 return this.currentSortOrderPosition(field) !== false;
             },
-            currentSortOrderPosition: function (field) {
-                if (!this.isSortable(field)) {
-                    return false
+            currentSortOrderPosition: function(field) {
+                if (!this.isSortable(field)) return false;
+                for(let i = 0; i < this.sortOrder.length; i++){
+                    if(this.fieldIsInSortOrderPosition(field, i)) return i;
                 }
-
-                for (let i = 0; i < this.sortOrder.length; i++) {
-                    if (this.fieldIsInSortOrderPosition(field, i)) {
-                        return i;
-                    }
-                }
-
                 return false;
             },
             fieldIsInSortOrderPosition(field, i) {
                 return this.sortOrder[i].field === field.name && this.sortOrder[i].sortField === field.sortField
             },
-            orderBy: function (field, event) {
+            orderBy: function(field, event) {
                 if (!this.isSortable(field)) return
 
                 let key = this.multiSortKey.toLowerCase() + 'Key'
@@ -449,7 +418,7 @@
                 this.currentPage = 1    // reset page index
                 this.loadData()
             },
-            multiColumnSort: function (field) {
+            multiColumnSort: function(field) {
                 let i = this.currentSortOrderPosition(field);
 
                 if (i === false) { //this field is not in the sort array yet
@@ -468,7 +437,7 @@
                     }
                 }
             },
-            singleColumnSort: function (field) {
+            singleColumnSort: function(field) {
                 if (this.sortOrder.length === 0) {
                     this.clearSortOrder()
                 }
@@ -485,14 +454,14 @@
                 this.sortOrder[0].field = field.name
                 this.sortOrder[0].sortField = field.sortField
             },
-            clearSortOrder: function () {
+            clearSortOrder: function() {
                 this.sortOrder.push({
                     field: '',
                     sortField: '',
                     direction: 'asc'
                 });
             },
-            sortIcon: function (field) {
+            sortIcon: function(field) {
                 let cls = {}
                 let i = this.currentSortOrderPosition(field);
 
@@ -506,7 +475,7 @@
 
                 return cls;
             },
-            sortIconOpacity: function (field) {
+            sortIconOpacity: function(field) {
                 /*
                 * fields with stronger precedence have darker color
                 *
@@ -532,15 +501,13 @@
 
                 return opacity
             },
-            hasCallback: function (item) {
+            hasCallback: function(item) {
                 return item.callback ? true : false
             },
-            callCallback: function (field, item) {
-                if (!this.hasCallback(field)) return
+            callCallback: function(field, item) {
+                if(!this.hasCallback(field)) return;
 
-                if (typeof (field.callback) == 'function') {
-                    return field.callback(this.getObjectValue(item, field.name))
-                }
+                if(typeof (field.callback) == 'function') return field.callback(this.getObjectValue(item, field.name));
 
                 let args = field.callback.split('|')
                 let func = args.shift()
@@ -555,24 +522,25 @@
 
                 return null
             },
-            getObjectValue: function (object, path, defaultValue) {
-                defaultValue = (typeof defaultValue === 'undefined') ? null : defaultValue
+            getObjectValue: function(object, path, defaultValue) {
+                defaultValue = typeof defaultValue === 'undefined' ? null : defaultValue;
 
-                let obj = object
-                if (path.trim() != '') {
-                    let keys = path.split('.')
-                    keys.forEach(function (key) {
-                        if (obj !== null && typeof obj[key] !== 'undefined' && obj[key] !== null) {
-                            obj = obj[key]
-                        } else {
-                            obj = defaultValue
-                            return
+                let obj = object;
+                if(path.trim() != ''){
+                    let keys = path.split('.');
+                    keys.forEach(function(key) {
+                        if(obj !== null && typeof obj[key] !== 'undefined' && obj[key] !== null){
+                            obj = obj[key];
+                        }
+                        else{
+                            obj = defaultValue;
+                            return;
                         }
                     })
                 }
-                return obj
+                return obj;
             },
-            toggleCheckbox: function (dataItem, fieldName, event) {
+            toggleCheckbox: function(dataItem, fieldName, event) {
                 let isChecked = event.target.checked
                 let idColumn = this.trackBy
 
@@ -589,26 +557,26 @@
                 }
                 this.$emit('vuetable:checkbox-toggled', isChecked, dataItem)
             },
-            selectId: function (key) {
+            selectId: function(key) {
                 if (!this.isSelectedRow(key)) {
                     this.selectedTo.push(key)
                 }
             },
-            unselectId: function (key) {
-                this.selectedTo = this.selectedTo.filter(function (item) {
+            unselectId: function(key) {
+                this.selectedTo = this.selectedTo.filter(function(item) {
                     return item !== key
                 })
             },
-            isSelectedRow: function (key) {
+            isSelectedRow: function(key) {
                 return this.selectedTo.indexOf(key) >= 0
             },
-            rowSelected: function (dataItem, fieldName) {
+            rowSelected: function(dataItem, fieldName) {
                 let idColumn = this.trackBy
                 let key = dataItem[idColumn]
 
                 return this.isSelectedRow(key)
             },
-            checkCheckboxesState: function (fieldName) {
+            checkCheckboxesState: function(fieldName) {
                 if (!this.tableData) return
 
                 let self = this
@@ -617,75 +585,75 @@
                 let els = document.querySelectorAll(selector)
 
                 // count how many checkbox row in the current page has been checked
-                let selected = this.tableData.filter(function (item) {
+                let selected = this.tableData.filter(function(item) {
                     return self.selectedTo.indexOf(item[idColumn]) >= 0
                 })
 
                 // count == 0, clear the checkbox
                 if (selected.length <= 0) {
-                    els.forEach(function (el) {
+                    els.forEach(function(el) {
                         el.indeterminate = false
                     })
                     return false
                 }
                 // count > 0 and count < perPage, set checkbox state to 'indeterminate'
                 else if (selected.length < this.perPage) {
-                    els.forEach(function (el) {
+                    els.forEach(function(el) {
                         el.indeterminate = true
                     })
                     return true
                 }
                 // count == perPage, set checkbox state to 'checked'
                 else {
-                    els.forEach(function (el) {
+                    els.forEach(function(el) {
                         el.indeterminate = false
                     })
                     return true
                 }
             },
-            toggleAllCheckboxes: function (fieldName, event) {
+            toggleAllCheckboxes: function(fieldName, event) {
                 let self = this
                 let isChecked = event.target.checked
                 let idColumn = this.trackBy
 
                 if (isChecked) {
-                    this.tableData.forEach(function (dataItem) {
+                    this.tableData.forEach(function(dataItem) {
                         self.selectId(dataItem[idColumn])
                     })
                 } else {
-                    this.tableData.forEach(function (dataItem) {
+                    this.tableData.forEach(function(dataItem) {
                         self.unselectId(dataItem[idColumn])
                     })
                 }
                 this.$emit('vuetable:checkbox-toggled-all', isChecked)
             },
-            gotoPreviousPage: function () {
+            gotoPreviousPage: function() {
                 if (this.currentPage > 1) {
                     this.currentPage--
                     this.loadData()
                 }
             },
-            gotoNextPage: function () {
+            gotoNextPage: function() {
                 if (this.currentPage < this.tablePagination.last_page) {
                     this.currentPage++
                     this.loadData()
                 }
             },
-            gotoPage: function (page) {
+            gotoPage: function(page) {
                 if (page != this.currentPage && (page > 0 && page <= this.tablePagination.last_page)) {
                     this.currentPage = page
                     this.loadData()
                 }
             },
-            isVisibleDetailRow: function (rowId) {
+            isVisibleDetailRow: function(rowId) {
                 return this.visibleDetailRows.indexOf(rowId) >= 0
             },
-            showDetailRow: function (rowId) {
+            showDetailRow: function(rowId) {
                 if (!this.isVisibleDetailRow(rowId)) {
                     this.visibleDetailRows.push(rowId)
                 }
             },
-            hideDetailRow: function (rowId) {
+            hideDetailRow: function(rowId) {
                 if (this.isVisibleDetailRow(rowId)) {
                     this.visibleDetailRows.splice(
                         this.visibleDetailRows.indexOf(rowId),
@@ -693,14 +661,14 @@
                     )
                 }
             },
-            toggleDetailRow: function (rowId) {
+            toggleDetailRow: function(rowId) {
                 if (this.isVisibleDetailRow(rowId)) {
                     this.hideDetailRow(rowId)
                 } else {
                     this.showDetailRow(rowId)
                 }
             },
-            onRowClass: function (dataItem, index) {
+            onRowClass: function(dataItem, index) {
                 let func = this.rowClassCallback.trim()
 
                 if (func !== '' && typeof this.$parent[func] === 'function') {
@@ -708,30 +676,30 @@
                 }
                 return ''
             },
-            onRowChanged: function (dataItem) {
+            onRowChanged: function(dataItem) {
                 this.fireEvent('row-changed', dataItem)
                 return true
             },
-            onRowClicked: function (dataItem, event) {
+            onRowClicked: function(dataItem, event) {
                 this.$emit(this.eventPrefix + 'row-clicked', dataItem, event)
                 return true
             },
-            onRowDoubleClicked: function (dataItem, event) {
+            onRowDoubleClicked: function(dataItem, event) {
                 this.$emit(this.eventPrefix + 'row-dblclicked', dataItem, event)
             },
-            onDetailRowClick: function (dataItem, event) {
+            onDetailRowClick: function(dataItem, event) {
                 this.$emit(this.eventPrefix + 'detail-row-clicked', dataItem, event)
             },
-            onCellClicked: function (dataItem, field, event) {
+            onCellClicked: function(dataItem, field, event) {
                 this.$emit(this.eventPrefix + 'cell-clicked', dataItem, field, event)
             },
-            onCellDoubleClicked: function (dataItem, field, event) {
+            onCellDoubleClicked: function(dataItem, field, event) {
                 this.$emit(this.eventPrefix + 'cell-dblclicked', dataItem, field, event)
             },
             /*
                 * API for externals
                 */
-            changePage: function (page) {
+            changePage: function(page) {
                 if (page === 'prev') {
                     this.gotoPreviousPage()
                 } else if (page === 'next') {
@@ -740,20 +708,23 @@
                     this.gotoPage(page)
                 }
             },
-            reload: function () {
+            reload: function() {
                 this.loadData()
             },
-            refresh: function () {
+            refresh: function() {
                 this.currentPage = 1
                 this.loadData()
             },
-        }, // end: methods
+        },
         watch: {
-            'multiSort': function (newVal, oldVal) {
-                if (newVal === false && this.sortOrder.length > 1) {
+            multiSort: function(newVal, oldVal) {
+                if(newVal === false && this.sortOrder.length > 1){
                     this.sortOrder.splice(1);
                     this.loadData();
                 }
+            },
+            rows: function(val) {
+                this.loadData();
             }
         },
     //});
