@@ -48,7 +48,7 @@
                 <tr @dblclick="onRowDoubleClicked(item, $event)"
                         @click="onRowClicked(item, $event)"
                         :render="onRowChanged(item)"
-                        :class="onRowClass(item, index)">
+                        :class="[onRowClass(item, index), item.selected ? 'selected' : '']">
                     <template v-for="field in fields">
                         <template v-if="field.visible">
                             <template v-if="isSpecialField(field.name)">
@@ -674,14 +674,8 @@
             },
             onRowClass: function(dataItem, index) {
                 let func = this.rowClassCallback.trim();
-                let _class = '';
-                if(dataItem.selected) _class = 'selected ';
-
-                if(func !== '' && typeof this.$parent[func] === 'function'){
-                    _class += this.$parent[func].call(this.$parent, dataItem, index);
-                    return _class;
-                }
-                return _class;
+                if(func !== '' && typeof this.$parent[func] === 'function') return this.$parent[func].call(this.$parent, dataItem, index);
+                return '';
             },
             onRowChanged: function(dataItem) {
                 this.fireEvent('row-changed', dataItem);
