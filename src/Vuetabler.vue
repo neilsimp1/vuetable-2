@@ -48,7 +48,7 @@
                 <tr @dblclick="onRowDoubleClicked(item, $event)"
                         @click="onRowClicked(item, $event)"
                         :render="onRowChanged(item)"
-                        :class="[onRowClass(item, index), item.selected ? 'selected' : '']">
+                        :class="[onRowClass(item, index), selected.indexOf(item[idField]) !== -1 ? 'selected' : '']">
                     <template v-for="field in fields">
                         <template v-if="field.visible">
                             <template v-if="isSpecialField(field.name)">
@@ -141,6 +141,10 @@
                 type: Object,
                 default: function() { return {} }
             },
+            idField: {
+                type: String,
+                default: 'id'
+            },
             httpOptions: {
                 type: Object,
                 default: function() { return {} }
@@ -223,6 +227,7 @@
                 tableData: null,
                 tablePagination: null,
                 currentPage: 1,
+                selected: [],
                 selectedTo: [],
                 visibleDetailRows: []
             }
@@ -328,21 +333,25 @@
                 this.fireEvent('load-success', response);
 
                 if(this.localData){
-                    this.tableData = this.rows;
+                    if(this.selectrows) this.tableData = this.rows.map(item => {
+                        item.selected = false;
+                        return item;
+                    });
+                    else this.tableData = this.rows;                    
                 }
-                else{
-                    // let body = this.transform(response.body)
+                // else{
+                //     let body = this.transform(response.body)
 
-                    // this.tableData = this.getObjectValue(body, this.dataPath, null)
-                    // this.tablePagination = this.getObjectValue(body, this.paginationPath, null)
+                //     this.tableData = this.getObjectValue(body, this.dataPath, null)
+                //     this.tablePagination = this.getObjectValue(body, this.paginationPath, null)
 
-                    // if (this.tablePagination === null) {
-                    //     this.warn('vuetable: pagination-path "' + this.paginationPath + '" not found. '
-                    //         + 'It looks like the data returned from the sever does not have pagination information '
-                    //         + 'or you may have set it incorrectly.'
-                    //     )
-                    // }
-                }
+                //     if (this.tablePagination === null) {
+                //         this.warn('vuetable: pagination-path "' + this.paginationPath + '" not found. '
+                //             + 'It looks like the data returned from the sever does not have pagination information '
+                //             + 'or you may have set it incorrectly.'
+                //         )
+                //     }
+                // }
 
                 this.$nextTick(function() {
                     // this.fireEvent('pagination-data', this.tablePagination);
@@ -720,9 +729,7 @@
                 this.loadData();
             },
             selectRow: function(dataItem) {
-                for(let i = 0; i < this.tableData.length; i++){
-                    this.tableData[i].selected = dataItem.name === this.tableData[i].name;
-                }
+                this.selected = [ dataItem[this.idField] ];
             },
             selectRow_ctrl: function() {
                 
