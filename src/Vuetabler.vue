@@ -691,14 +691,15 @@
                 return true;
             },
             onRowClicked: function(dataItem, e) {
+                this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
+				
                 if(this.selectrows){
-                    if(e.shiftKey) this.selectRow_shift(dataItem);
-                    if(e.ctrlKey) this.selectRow_ctrl(dataItem);
+                    if(e.shiftKey && dataItem[this.idField]) this.selectRow_shift(dataItem);
+                    else if(e.ctrlKey && dataItem[this.idField]) this.selectRow_ctrl(dataItem);
                     else this.selectRow(dataItem);
 					this.fireEvent('rows-selected', this.selected);
                 }
 
-                this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
                 return true;
             },
             onRowDoubleClicked: function(dataItem, e) {
@@ -732,11 +733,20 @@
             selectRow: function(dataItem) {
                 this.selected = [dataItem[this.idField]];
             },
-            selectRow_ctrl: function() {
+            selectRow_ctrl: function(dataItem) {
                 
             },
-            selectRow_shift: function() {
-                
+            selectRow_shift: function(dataItem) {
+                const startIndex = this.tableData.findIndex(x => this.selected[0] === x[this.idField]);
+				const endIndex = this.tableData.findIndex(x => dataItem[this.idField] === x[this.idField]);
+
+				this.selected = [];
+				if(startIndex <= endIndex){					
+					for(let i = startIndex; i <= endIndex; i++) this.selected.push(this.tableData[i][this.idField]);
+				}
+				else{
+					for(let i = startIndex; i >= endIndex; i--) this.selected.push(this.tableData[i][this.idField]);
+				}
             }
         },
         watch: {
