@@ -371,7 +371,7 @@
                 return (func !== '' && typeof this.$parent[func] === 'function');
             },
             fireEvent: function(eventName, args) {
-                this.$emit(this.eventPrefix + eventName, args);
+                this.$root.$emit(this.eventPrefix + eventName, args);
             },
             warn: function(msg) {
                 if(!this.silent) console.warn(msg);
@@ -695,6 +695,7 @@
                     if(e.shiftKey) this.selectRow_shift(dataItem);
                     if(e.ctrlKey) this.selectRow_ctrl(dataItem);
                     else this.selectRow(dataItem);
+					this.fireEvent('rows-selected', this.selected);
                 }
 
                 this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
@@ -729,7 +730,7 @@
                 this.loadData();
             },
             selectRow: function(dataItem) {
-                this.selected = [ dataItem[this.idField] ];
+                this.selected = [dataItem[this.idField]];
             },
             selectRow_ctrl: function() {
                 
