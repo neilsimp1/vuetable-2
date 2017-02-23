@@ -734,7 +734,10 @@
                 this.selected = [dataItem[this.idField]];
             },
             selectRow_ctrl: function(dataItem) {
-                
+                const curIndex = this.selected.indexOf(dataItem[this.idField]);
+				if(curIndex > -1) this.selected.splice(curIndex, 1);
+				else this.selected.push(dataItem[this.idField]);
+				this.removeNullSelected();
             },
             selectRow_shift: function(dataItem) {
                 const startIndex = this.tableData.findIndex(x => this.selected[0] === x[this.idField]);
@@ -747,7 +750,12 @@
 				else{
 					for(let i = startIndex; i >= endIndex; i--) this.selected.push(this.tableData[i][this.idField]);
 				}
-            }
+				this.removeNullSelected();
+            },
+			removeNullSelected: function() {
+				const nullIndex = this.selected.findIndex(x => !x);
+				if(nullIndex > -1) this.selected.splice(nullIndex, 1);
+			}
         },
         watch: {
             multiSort: function(newVal, oldVal) {
