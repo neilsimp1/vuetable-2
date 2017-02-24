@@ -182,6 +182,7 @@ process.umask = function() { return 0; };
 
 },{}],2:[function(require,module,exports){
 var Vue // late bind
+var version
 var map = window.__VUE_HOT_MAP__ = Object.create(null)
 var installed = false
 var isBrowserify = false
@@ -192,6 +193,7 @@ exports.install = function (vue, browserify) {
   installed = true
 
   Vue = vue
+  version = Vue.version.split('.').map(Number)
   isBrowserify = browserify
 
   // compat with < 2.0.0-alpha.7
@@ -199,7 +201,7 @@ exports.install = function (vue, browserify) {
     initHookName = 'init'
   }
 
-  exports.compatible = Number(Vue.version.split('.')[0]) >= 2
+  exports.compatible = version[0] >= 2
   if (!exports.compatible) {
     console.warn(
       '[HMR] You are using a version of vue-hot-reload-api that is ' +
@@ -295,7 +297,10 @@ exports.reload = tryWrap(function (id, options) {
   }
   makeOptionsHot(id, options)
   var record = map[id]
-  record.Ctor.extendOptions = options
+  if (version[1] < 2) {
+    // preserve pre 2.2 behavior for global mixin handling
+    record.Ctor.extendOptions = options
+  }
   var newCtor = record.Ctor.super.extend(options)
   record.Ctor.options = newCtor.options
   record.Ctor.cid = newCtor.cid
@@ -15200,6 +15205,25 @@ module.exports = Vue$2;
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
     const Vue = require('vue/dist/vue.common.js');
     //const VueResource = require('vue-resource');
@@ -15353,7 +15377,17 @@ module.exports = Vue$2;
             },
             localData: function() {
                 return !!this.rows.length;
-            }
+            },
+			tableWidth: function() {
+				let width = 0;
+				for(const field of this.fields){
+					if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ''));
+				}
+				if(width === 0) return null;
+				width += 6;//////////////////////////////////
+
+				return { width: width + 'px' };
+			}
         },
         methods: {
             normalizeFields: function() {
@@ -15373,19 +15407,21 @@ module.exports = Vue$2;
                             dataClass: '',
                             callback: null,
                             visible: true,
-                            selected: false
+                            selected: false,
+							width: null
                         };
                     }
                     else{
                         obj = {
                             name: field.name,
-                            title: (field.title === undefined) ? self.setTitle(field.name) : field.title,
+                            title: field.title || self.setTitle(field.name),
                             sortField: field.sortField,
-                            titleClass: (field.titleClass === undefined) ? '' : field.titleClass,
-                            dataClass: (field.dataClass === undefined) ? '' : field.dataClass,
-                            callback: (field.callback === undefined) ? '' : field.callback,
-                            visible: (field.visible === undefined) ? true : field.visible,
-                            selected: false
+                            titleClass: field.titleClass || '',
+                            dataClass: field.dataClass || '',
+                            callback: field.callback || '',
+                            visible: field.visible !== undefined ? field.visible : true,
+                            selected: false,
+							width: field.width || null
                         };
                     }
                     Vue.set(self.fields, i, obj);
@@ -15878,7 +15914,7 @@ module.exports = Vue$2;
 if (module.exports.__esModule) module.exports = module.exports.default
 var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
 if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
-__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('table',{class:['vuetable', _vm.css.tableClass]},[_c('thead',[_c('tr',[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__checkbox')?_c('th',{class:['vuetable-th-checkbox-'+_vm.trackBy, field.titleClass]},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.checkCheckboxesState(field.name)},on:{"change":function($event){_vm.toggleAllCheckboxes(field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__component')?_c('th',{class:['vuetable-th-component-'+_vm.trackBy, field.titleClass, {'sortable': _vm.isSortable(field)}],on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n                            "+_vm._s(field.title || '')+"\n                            "),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__slot')?_c('th',{class:['vuetable-th-slot-'+_vm.extractArgs(field.name), field.titleClass, {'sortable': _vm.isSortable(field)}],on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n                            "+_vm._s(field.title || '')+"\n                            "),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__sequence')?_c('th',{class:['vuetable-th-sequence', field.titleClass || ''],domProps:{"innerHTML":_vm._s(field.title || '')}}):_vm._e(),_vm._v(" "),(_vm.notIn(_vm.extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot']))?_c('th',{class:['vuetable-th-'+field.name, field.titleClass || ''],domProps:{"innerHTML":_vm._s(field.title || '')}}):_vm._e()]:[_c('th',{class:['vuetable-th-'+field.name, field.titleClass,  {'sortable': _vm.isSortable(field)}],attrs:{"id":'_' + field.name},on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n                            "+_vm._s(_vm.getTitle(field))+" \n                            "),(_vm.isInCurrentSortGroup(field))?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()])]]:_vm._e()]})],2)]),_vm._v(" "),_c('tbody',{},[_vm._l((_vm.tableData),function(item,index){return [_c('tr',{class:[_vm.onRowClass(item, index), _vm.selected.indexOf(item[_vm.idField]) !== -1 ? 'selected' : ''],attrs:{"render":_vm.onRowChanged(item)},on:{"dblclick":function($event){_vm.onRowDoubleClicked(item, $event)},"click":function($event){_vm.onRowClicked(item, $event)}}},[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__sequence')?_c('td',{class:['vuetable-sequence', field.dataClass],domProps:{"innerHTML":_vm._s(_vm.tablePagination.from + index)}}):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__handle')?_c('td',{class:['vuetable-handle', field.dataClass]},[_c('i',{class:['sort-handle', _vm.css.sortHandleIcon]})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__checkbox')?_c('td',{class:['vuetable-checkboxes', field.dataClass]},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.rowSelected(item, field.name)},on:{"change":function($event){_vm.toggleCheckbox(item, field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__component')?_c('td',{class:['vuetable-component', field.dataClass]},[_c(_vm.extractArgs(field.name),{tag:"component",attrs:{"row-data":item,"row-index":index}})],1):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__slot')?_c('td',{class:['vuetable-slot', field.dataClass]},[_vm._t(_vm.extractArgs(field.name),null,{rowData:item,rowIndex:index})],2):_vm._e()]:[(_vm.hasCallback(field))?_c('td',{class:field.dataClass,domProps:{"innerHTML":_vm._s(_vm.callCallback(field, item))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}}):_c('td',{class:field.dataClass,domProps:{"innerHTML":_vm._s(_vm.getObjectValue(item, field.name, ''))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}})]]:_vm._e()]})],2),_vm._v(" "),(_vm.useDetailRow)?[_c('transition',{attrs:{"name":_vm.detailRowTransition}},[(_vm.isVisibleDetailRow(item[_vm.trackBy]))?_c('tr',{class:[_vm.css.detailRowClass],on:{"click":function($event){_vm.onDetailRowClick(item, $event)}}},[_c('td',{attrs:{"colspan":_vm.countVisibleFields}},[_c(_vm.detailRowComponent,{tag:"component",attrs:{"row-data":item,"row-index":index}})],1)]):_vm._e()])]:_vm._e()]})],2)])}
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('table',{class:['vuetable', _vm.css.tableClass],style:(_vm.tableWidth)},[_c('thead',[_c('tr',[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__checkbox')?_c('th',{class:['vuetable-th-checkbox-'+_vm.trackBy, field.titleClass],style:({ width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.checkCheckboxesState(field.name)},on:{"change":function($event){_vm.toggleAllCheckboxes(field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__component')?_c('th',{class:['vuetable-th-component-'+_vm.trackBy, field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n                                "+_vm._s(field.title || '')+"\n                                "),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__slot')?_c('th',{class:['vuetable-th-slot-'+_vm.extractArgs(field.name), field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n                                "+_vm._s(field.title || '')+"\n                                "),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__sequence')?_c('th',{class:['vuetable-th-sequence', field.titleClass || ''],style:({ width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}}):_vm._e(),_vm._v(" "),(_vm.notIn(_vm.extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot']))?_c('th',{class:['vuetable-th-'+field.name, field.titleClass || ''],style:({ width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}}):_vm._e()]:[_c('th',{class:['vuetable-th-'+field.name, field.titleClass,  {'sortable': _vm.isSortable(field)}],style:({ width: field.width }),attrs:{"id":'_' + field.name},on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(_vm.getTitle(field))+" \n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field))?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e()])]]:_vm._e()]})],2)]),_vm._v(" "),_c('tbody',{},[_vm._l((_vm.tableData),function(item,index){return [_c('tr',{class:[_vm.onRowClass(item, index), _vm.selected.indexOf(item[_vm.idField]) !== -1 ? 'selected' : ''],attrs:{"render":_vm.onRowChanged(item)},on:{"dblclick":function($event){_vm.onRowDoubleClicked(item, $event)},"click":function($event){_vm.onRowClicked(item, $event)}}},[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__sequence')?_c('td',{class:['vuetable-sequence', field.dataClass],style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.tablePagination.from + index)}}):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__handle')?_c('td',{class:['vuetable-handle', field.dataClass],style:({ width: field.width })},[_c('i',{class:['sort-handle', _vm.css.sortHandleIcon]})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__checkbox')?_c('td',{class:['vuetable-checkboxes', field.dataClass],style:({ width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.rowSelected(item, field.name)},on:{"change":function($event){_vm.toggleCheckbox(item, field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__component')?_c('td',{class:['vuetable-component', field.dataClass],style:({ width: field.width })},[_c(_vm.extractArgs(field.name),{tag:"component",attrs:{"row-data":item,"row-index":index}})],1):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__slot')?_c('td',{class:['vuetable-slot', field.dataClass],style:({ width: field.width })},[_vm._t(_vm.extractArgs(field.name),null,{rowData:item,rowIndex:index})],2):_vm._e()]:[(_vm.hasCallback(field))?_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.callCallback(field, item))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}}):_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.getObjectValue(item, field.name, ''))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}})]]:_vm._e()]})],2),_vm._v(" "),(_vm.useDetailRow)?[_c('transition',{attrs:{"name":_vm.detailRowTransition}},[(_vm.isVisibleDetailRow(item[_vm.trackBy]))?_c('tr',{class:[_vm.css.detailRowClass],on:{"click":function($event){_vm.onDetailRowClick(item, $event)}}},[_c('td',{attrs:{"colspan":_vm.countVisibleFields}},[_c(_vm.detailRowComponent,{tag:"component",attrs:{"row-data":item,"row-index":index}})],1)]):_vm._e()])]:_vm._e()]})],2)])}
 __vue__options__.staticRenderFns = []
 if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
