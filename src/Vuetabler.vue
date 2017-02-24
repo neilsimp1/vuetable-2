@@ -261,12 +261,13 @@
                 currentPage: 1,
                 selected: [],
                 selectedTo: [],
-                visibleDetailRows: []
+                visibleDetailRows: [],
+				config: {}
             }
         },
         created: function() {
             this.normalizeFields();
-            this.normalizeConfig();
+            this.initConfig();
             if(this.loadOnStart) this.loadData();
         },
         computed: {
@@ -335,7 +336,7 @@
                     Vue.set(self.fields, i, obj);
                 })
             },
-			normalizeConfig: function() {
+			initConfig: function() {
                 let obj = {
 					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false,
 					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false
