@@ -7,43 +7,51 @@
                         <template v-if="isSpecialField(field.name)">
                             <th v-if="extractName(field.name) == '__checkbox'"
 									:class="['vuetable-th-checkbox-'+trackBy, field.titleClass]"
-									:style="{ width: field.width }">
+									:style="{ position: 'relative', width: field.width }">
                                 <input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
+								
                             </th>
                             <th v-if="extractName(field.name) == '__component'"
                                     @click="orderBy(field, $event)"
                                     :class="['vuetable-th-component-'+trackBy, field.titleClass, {'sortable': isSortable(field)}]"
-									:style="{ width: field.width }">
+									:style="{ position: 'relative', width: field.width }">
                                 {{ field.title || '' }}
                                 <i v-if="isInCurrentSortGroup(field) && field.title"
-                                    :class="sortIcon(field)"
-                                    :style="{opacity: sortIconOpacity(field)}"></i>
-                            </th>
+									:class="sortIcon(field)"
+                                    :style="{opacity: sortIconOpacity(field)}">
+								</i>
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+							</th>
                             <th v-if="extractName(field.name) == '__slot'"
                                     @click="orderBy(field, $event)"
                                     :class="['vuetable-th-slot-'+extractArgs(field.name), field.titleClass, {'sortable': isSortable(field)}]"
-									:style="{ width: field.width }">
+									:style="{ position: 'relative', width: field.width }">
                                 {{ field.title || '' }}
                                 <i v-if="isInCurrentSortGroup(field) && field.title"
                                     :class="sortIcon(field)"
-                                    :style="{opacity: sortIconOpacity(field)}"></i>
+                                    :style="{opacity: sortIconOpacity(field)}">
+								</i>
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
                             </th>
                             <th v-if="extractName(field.name) == '__sequence'"
-                                :class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''"
-								:style="{ width: field.width }">
+									:class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''"
+									:style="{ position: 'relative', width: field.width }">
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
                             </th>
                             <th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
-                                :class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''"
-								:style="{ width: field.width }">
+									:class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''"
+									:style="{ position: 'relative', width: field.width }">
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
                             </th>
                         </template>
                         <template v-else>
                             <th @click="orderBy(field, $event)"
 									:id="'_' + field.name"
 									:class="['vuetable-th-'+field.name, field.titleClass,  {'sortable': isSortable(field)}]"
-									:style="{ width: field.width }">
+									:style="{ position: 'relative', width: field.width }">
 								{{ getTitle(field) }}&nbsp;
 								<i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
                             </th>
                         </template>
                     </template>
@@ -176,10 +184,6 @@
                 type: Array,
                 default: function() { return [] }
             },
-            selectrows: {
-                type: Boolean,
-                default: false
-            },
             sortOrder: {
                 type: Array,
                 default: function() { return [] }
@@ -232,13 +236,22 @@
                         detailRowClass: 'vuetable-detail-row',
                         sortHandleIcon: 'grey sidebar icon',
                         selectedClass: 'selected'
-                    }
+                    };
                 }
             },
             silent: {
                 type: Boolean,
                 default: false
-            }
+            },
+			options: {
+				type: Object,
+				default: function() {
+					return {
+						rowSelect: false,
+						resizeColumns: false
+					};
+				}
+			}
         },
         data: function() {
             return {
@@ -253,6 +266,7 @@
         },
         created: function() {
             this.normalizeFields();
+            this.normalizeConfig();
             if(this.loadOnStart) this.loadData();
         },
         computed: {
@@ -321,6 +335,13 @@
                     Vue.set(self.fields, i, obj);
                 })
             },
+			normalizeConfig: function() {
+                let obj = {
+					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false,
+					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false
+				};
+				this.config = obj;
+			},
             setTitle: function(str) {
                 if(this.isSpecialField(str)) return '';
                 return this.titleCase(str);
@@ -364,7 +385,7 @@
                 this.fireEvent('load-success', response);
 
                 if(this.localData){
-                    if(this.selectrows) this.tableData = this.rows.map(item => {
+                    if(this.config.rowSelect) this.tableData = this.rows.map(item => {
                         item.selected = false;
                         return item;
                     });
@@ -724,7 +745,7 @@
             onRowClicked: function(dataItem, e) {
                 this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
 				
-                if(this.selectrows){
+                if(this.config.rowSelect){
                     if(e.shiftKey && dataItem[this.idField]) this.selectRow_shift(dataItem);
                     else if(e.ctrlKey && dataItem[this.idField]) this.selectRow_ctrl(dataItem);
                     else this.selectRow(dataItem);
