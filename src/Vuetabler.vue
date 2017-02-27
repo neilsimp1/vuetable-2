@@ -9,7 +9,7 @@
 									:class="['vuetable-th-checkbox-'+trackBy, field.titleClass]"
 									:style="{ position: 'relative', width: field.width }">
                                 <input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
-								
+								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
                             </th>
                             <th v-if="extractName(field.name) == '__component'"
                                     @click="orderBy(field, $event)"
@@ -51,7 +51,10 @@
 									:style="{ position: 'relative', width: field.width }">
 								{{ getTitle(field) }}&nbsp;
 								<i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								<span v-if="config.resizeColumns"
+									style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+									@mousedown="resizeColumn">
+								</span>
                             </th>
                         </template>
                     </template>
@@ -808,6 +811,40 @@
 			removeNullSelected: function() {
 				const nullIndex = this.selected.findIndex(x => !x);
 				if(nullIndex > -1) this.selected.splice(nullIndex, 1);
+			},
+			resizeColumn: function(e) {
+				const getColIndex = cell => {
+					let child = cell;
+					for(var i = 1; (child = child.previousSibling); i++);
+					return i;
+				};
+				const updateFieldWidth = (colIndex, width) => {
+					for(let i = 0; i <= this.fields.length; i++){
+						if(this.fields[i].visible && i === (colIndex - 1)){
+							this.fields[i].width = width;
+							break;
+						}
+					}
+				};
+
+				const th = e.target.parentNode;
+				const colIndex = getColIndex(th);
+				const table = th.parentNode.parentNode.parentNode;
+				const startX = e.clientX;
+				
+				const onMouseUp = e => {
+					const endX = e.clientX;
+					const offset = endX - startX;
+					let width = th.clientWidth + offset;
+					if(width < 12) width = 12;
+					width += 'px';
+
+					updateFieldWidth(colIndex, width);
+
+					window.removeEventListener('mouseup', onMouseUp);					
+				};
+
+				window.addEventListener('mouseup', onMouseUp);
 			}
         },
         watch: {
