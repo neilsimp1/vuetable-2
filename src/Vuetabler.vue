@@ -232,12 +232,12 @@
                 type: Object,
                 default: function() {
                     return {
-                        tableClass: 'ui blue selectable celled stackable attached table',
-                        loadingClass: 'loading',
-                        ascendingIcon: 'blue chevron up icon',
-                        descendingIcon: 'blue chevron down icon',
-                        detailRowClass: 'vuetable-detail-row',
-                        sortHandleIcon: 'grey sidebar icon',
+                        tableClass: '',
+                        loadingClass: '',
+                        ascendingIcon: '',
+                        descendingIcon: '',
+                        detailRowClass: '',
+                        sortHandleIcon: '',
                         selectedClass: 'selected'
                     };
                 }
@@ -250,8 +250,9 @@
 				type: Object,
 				default: function() {
 					return {
+						pinned: [],						
+						resizeColumns: false,
 						rowSelect: false,
-						resizeColumns: false
 					};
 				}
 			}
@@ -341,8 +342,9 @@
             },
 			initConfig: function() {
                 let obj = {
-					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false,
-					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false
+					pinned: this.options.pinned.length ? this.options.pinned : [],
+					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false,
+					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false
 				};
 				this.config = obj;
 			},
@@ -480,22 +482,22 @@
                 return false;
             },
             fieldIsInSortOrderPosition(field, i) {
-                return this.sortOrder[i].field === field.name && this.sortOrder[i].sortField === field.sortField
+                return this.sortOrder[i].field === field.name && this.sortOrder[i].sortField === field.sortField;
             },
             orderBy: function(field, event) {
-                if (!this.isSortable(field)) return
+                if(!this.isSortable(field)) return;
 
-                let key = this.multiSortKey.toLowerCase() + 'Key'
-
-                if (this.multiSort && event[key]) { //adding column to multisort
-                    this.multiColumnSort(field)
-                } else {
-                    //no multisort, or resetting sort
-                    this.singleColumnSort(field)
+                const key = this.multiSortKey.toLowerCase() + 'Key';
+                if(this.multiSort && event[key]){ // adding column to multisort
+                    this.multiColumnSort(field);
+                }
+				else{
+                    this.singleColumnSort(field); // no multisort, or resetting sort
                 }
 
-                this.currentPage = 1    // reset page index
-                this.loadData()
+                this.currentPage = 1; // reset page index
+				if(this.localData) this.sortLocalData();
+				else this.loadData();
             },
             multiColumnSort: function(field) {
                 let i = this.currentSortOrderPosition(field);
@@ -517,22 +519,37 @@
                 }
             },
             singleColumnSort: function(field) {
-                if (this.sortOrder.length === 0) {
-                    this.clearSortOrder()
-                }
+                if(!this.sortOrder.length) this.clearSortOrder();
 
-                this.sortOrder.splice(1); //removes additional columns
+                this.sortOrder.splice(1); // removes additional columns
 
-                if (this.fieldIsInSortOrderPosition(field, 0)) {
+				if(this.fieldIsInSortOrderPosition(field, 0)){
                     // change sort direction
-                    this.sortOrder[0].direction = this.sortOrder[0].direction === 'asc' ? 'desc' : 'asc'
-                } else {
-                    // reset sort direction
-                    this.sortOrder[0].direction = 'asc'
+                    this.sortOrder[0].direction = this.sortOrder[0].direction === 'asc' ? 'desc' : 'asc';
                 }
-                this.sortOrder[0].field = field.name
-                this.sortOrder[0].sortField = field.sortField
+				else{                    
+                    this.sortOrder[0].direction = 'asc'; // reset sort direction
+                }
+                this.sortOrder[0].field = field.name;
+                this.sortOrder[0].sortField = field.sortField;
             },
+			sortLocalData: function() {
+				// TODO: This only handles single column sort at the moment
+				this.tableData.sort((a, b) => {
+					const isPinned = this.config.pinned.some(pinned => a.name === pinned);
+					if(isPinned) return -1;
+
+					let x, y;
+					if(typeof a[this.sortOrder[0].sortField] === 'string')
+						x = a[this.sortOrder[0].sortField].toLowerCase(), y = b[this.sortOrder[0].sortField].toLowerCase();
+					else x = a, y = b;
+					
+					if(this.sortOrder[0].direction === 'desc') [x, y] = [y, x];
+					if(x < y) return -1;
+					if(x > y) return 1;
+					return 0;
+				});
+			},
             clearSortOrder: function() {
                 this.sortOrder.push({
                     field: '',
