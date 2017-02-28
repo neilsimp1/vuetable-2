@@ -342,7 +342,7 @@
             },
 			initConfig: function() {
                 let obj = {
-					pinned: this.options.pinned.length ? this.options.pinned : [],
+					pinned: this.options.pinned ? this.options.pinned : [],
 					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false,
 					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false
 				};
