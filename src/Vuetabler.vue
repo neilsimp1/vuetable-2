@@ -1,132 +1,139 @@
 <template>
-    <table :class="['vuetable', css.tableClass]" :style="tableWidth">
-        <thead>
-            <tr>
-                <template v-for="field in fields">
-                    <template v-if="field.visible">
-                        <template v-if="isSpecialField(field.name)">
-                            <th v-if="extractName(field.name) == '__checkbox'"
-									:class="['vuetable-th-checkbox-'+trackBy, field.titleClass]"
-									:style="{ position: 'relative', width: field.width }">
-                                <input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
-                            </th>
-                            <th v-if="extractName(field.name) == '__component'"
-                                    @click="orderBy(field, $event)"
-                                    :class="['vuetable-th-component-'+trackBy, field.titleClass, {'sortable': isSortable(field)}]"
-									:style="{ position: 'relative', width: field.width }">
-                                {{ field.title || '' }}
-                                <i v-if="isInCurrentSortGroup(field) && field.title"
-									:class="sortIcon(field)"
-                                    :style="{opacity: sortIconOpacity(field)}">
-								</i>
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
-							</th>
-                            <th v-if="extractName(field.name) == '__slot'"
-                                    @click="orderBy(field, $event)"
-                                    :class="['vuetable-th-slot-'+extractArgs(field.name), field.titleClass, {'sortable': isSortable(field)}]"
-									:style="{ position: 'relative', width: field.width }">
-                                {{ field.title || '' }}
-                                <i v-if="isInCurrentSortGroup(field) && field.title"
-                                    :class="sortIcon(field)"
-                                    :style="{opacity: sortIconOpacity(field)}">
-								</i>
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
-                            </th>
-                            <th v-if="extractName(field.name) == '__sequence'"
-									:class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''"
-									:style="{ position: 'relative', width: field.width }">
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
-                            </th>
-                            <th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
-									:class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''"
-									:style="{ position: 'relative', width: field.width }">
-								<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
-                            </th>
-                        </template>
-                        <template v-else>
-                            <th @click="orderBy(field, $event)"
-									:id="'_' + field.name"
-									:class="['vuetable-th-'+field.name, field.titleClass,  {'sortable': isSortable(field)}]"
-									:style="{ position: 'relative', width: field.width }">
-								{{ getTitle(field) }}&nbsp;
-								<i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
-								<span v-if="config.resizeColumns"
-									style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
-									@mousedown="resizeColumn">
-								</span>
-                            </th>
-                        </template>
-                    </template>
-                </template>
-            </tr>
-        </thead>
-        <tbody v-cloak>
-            <template v-for="(item, index) in tableData">
-                <tr @dblclick="onRowDoubleClicked(item, $event)"
-                        @click="onRowClicked(item, $event)"
-                        :render="onRowChanged(item)"
-                        :class="[onRowClass(item, index), selected.indexOf(item[idField]) !== -1 ? 'selected' : '']">
-                    <template v-for="field in fields">
-                        <template v-if="field.visible">
-                            <template v-if="isSpecialField(field.name)">
-                                <td v-if="extractName(field.name) == '__sequence'"
-									:class="['vuetable-sequence', field.dataClass]"
-									:style="{ width: field.width }"
-                                    v-html="tablePagination.from + index">
-                                </td>
-                                <td v-if="extractName(field.name) == '__handle'"
-										:class="['vuetable-handle', field.dataClass]"
-										:style="{ width: field.width }">
-                                    <i :class="['sort-handle', css.sortHandleIcon]"></i>
-                                </td>
-                                <td v-if="extractName(field.name) == '__checkbox'"
-										:class="['vuetable-checkboxes', field.dataClass]"
-										:style="{ width: field.width }">
-                                    <input type="checkbox"  @change="toggleCheckbox(item, field.name, $event)" :checked="rowSelected(item, field.name)">
-                                </td>
-                                <td v-if="extractName(field.name) === '__component'"
-										:class="['vuetable-component', field.dataClass]"
-										:style="{ width: field.width }">
-                                    <component :is="extractArgs(field.name)" :row-data="item" :row-index="index"></component>
-                                </td>
-                                <td v-if="extractName(field.name) === '__slot'"
-										:class="['vuetable-slot', field.dataClass]"
-										:style="{ width: field.width }">
-                                    <slot :name="extractArgs(field.name)" :row-data="item" :row-index="index"></slot>
-                                </td>
-                            </template>
-                            <template v-else>
-                                <td v-if="hasCallback(field)" @click="onCellClicked(item, field, $event)"
-                                    @dblclick="onCellDoubleClicked(item, field, $event)"
-									:class="field.dataClass"
-									:style="{ width: field.width }"
-                                    v-html="callCallback(field, item)">
-                                </td>
-                                <td v-else @click="onCellClicked(item, field, $event)"
-                                    @dblclick="onCellDoubleClicked(item, field, $event)"
-									:class="field.dataClass"
-									:style="{ width: field.width }"
-                                    v-html="getObjectValue(item, field.name, '')">
-                                </td>
-                            </template>
-                        </template>
-                    </template>
-                </tr>
-                <template v-if="useDetailRow">
-                    <transition :name="detailRowTransition">
-                        <tr v-if="isVisibleDetailRow(item[trackBy])"
-                                @click="onDetailRowClick(item, $event)"
-                                :class="[css.detailRowClass]">
-                            <td :colspan="countVisibleFields">
-                                <component :is="detailRowComponent" :row-data="item" :row-index="index"></component>
-                            </td>
-                        </tr>
-                    </transition>
-                </template>
-            </template>
-        </tbody>
-    </table>
+	<div>
+		<table :class="['vuetable', css.tableClass]" :style="tableWidth">
+			<thead @click.right="openFieldsMenu">
+				<tr>
+					<template v-for="field in fields">
+						<template v-if="field.visible">
+							<template v-if="isSpecialField(field.name)">
+								<th v-if="extractName(field.name) == '__checkbox'"
+										:class="['vuetable-th-checkbox-'+trackBy, field.titleClass]"
+										:style="{ position: 'relative', width: field.width }">
+									<input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
+									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								</th>
+								<th v-if="extractName(field.name) == '__component'"
+										@click="orderBy(field, $event)"
+										:class="['vuetable-th-component-'+trackBy, field.titleClass, {'sortable': isSortable(field)}]"
+										:style="{ position: 'relative', width: field.width }">
+									{{ field.title || '' }}
+									<i v-if="isInCurrentSortGroup(field) && field.title"
+										:class="sortIcon(field)"
+										:style="{opacity: sortIconOpacity(field)}">
+									</i>
+									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								</th>
+								<th v-if="extractName(field.name) == '__slot'"
+										@click="orderBy(field, $event)"
+										:class="['vuetable-th-slot-'+extractArgs(field.name), field.titleClass, {'sortable': isSortable(field)}]"
+										:style="{ position: 'relative', width: field.width }">
+									{{ field.title || '' }}
+									<i v-if="isInCurrentSortGroup(field) && field.title"
+										:class="sortIcon(field)"
+										:style="{opacity: sortIconOpacity(field)}">
+									</i>
+									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								</th>
+								<th v-if="extractName(field.name) == '__sequence'"
+										:class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''"
+										:style="{ position: 'relative', width: field.width }">
+									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								</th>
+								<th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
+										:class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''"
+										:style="{ position: 'relative', width: field.width }">
+									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+								</th>
+							</template>
+							<template v-else>
+								<th @click="orderBy(field, $event)"
+										:id="'_' + field.name"
+										:class="['vuetable-th-'+field.name, field.titleClass,  {'sortable': isSortable(field)}]"
+										:style="{ position: 'relative', width: field.width }">
+									{{ getTitle(field) }}&nbsp;
+									<i v-if="isInCurrentSortGroup(field)" :class="sortIcon(field)" :style="{opacity: sortIconOpacity(field)}"></i>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
+								</th>
+							</template>
+						</template>
+					</template>
+				</tr>
+			</thead>
+			<tbody v-cloak>
+				<template v-for="(item, index) in tableData">
+					<tr @dblclick="onRowDoubleClicked(item, $event)"
+							@click="onRowClicked(item, $event)"
+							:render="onRowChanged(item)"
+							:class="[onRowClass(item, index), selected.indexOf(item[idField]) !== -1 ? 'selected' : '']">
+						<template v-for="field in fields">
+							<template v-if="field.visible">
+								<template v-if="isSpecialField(field.name)">
+									<td v-if="extractName(field.name) == '__sequence'"
+										:class="['vuetable-sequence', field.dataClass]"
+										:style="{ width: field.width }"
+										v-html="tablePagination.from + index">
+									</td>
+									<td v-if="extractName(field.name) == '__handle'"
+											:class="['vuetable-handle', field.dataClass]"
+											:style="{ width: field.width }">
+										<i :class="['sort-handle', css.sortHandleIcon]"></i>
+									</td>
+									<td v-if="extractName(field.name) == '__checkbox'"
+											:class="['vuetable-checkboxes', field.dataClass]"
+											:style="{ width: field.width }">
+										<input type="checkbox"  @change="toggleCheckbox(item, field.name, $event)" :checked="rowSelected(item, field.name)">
+									</td>
+									<td v-if="extractName(field.name) === '__component'"
+											:class="['vuetable-component', field.dataClass]"
+											:style="{ width: field.width }">
+										<component :is="extractArgs(field.name)" :row-data="item" :row-index="index"></component>
+									</td>
+									<td v-if="extractName(field.name) === '__slot'"
+											:class="['vuetable-slot', field.dataClass]"
+											:style="{ width: field.width }">
+										<slot :name="extractArgs(field.name)" :row-data="item" :row-index="index"></slot>
+									</td>
+								</template>
+								<template v-else>
+									<td v-if="hasCallback(field)" @click="onCellClicked(item, field, $event)"
+										@dblclick="onCellDoubleClicked(item, field, $event)"
+										:class="field.dataClass"
+										:style="{ width: field.width }"
+										v-html="callCallback(field, item)">
+									</td>
+									<td v-else @click="onCellClicked(item, field, $event)"
+										@dblclick="onCellDoubleClicked(item, field, $event)"
+										:class="field.dataClass"
+										:style="{ width: field.width }"
+										v-html="getObjectValue(item, field.name, '')">
+									</td>
+								</template>
+							</template>
+						</template>
+					</tr>
+					<template v-if="useDetailRow">
+						<transition :name="detailRowTransition">
+							<tr v-if="isVisibleDetailRow(item[trackBy])"
+									@click="onDetailRowClick(item, $event)"
+									:class="[css.detailRowClass]">
+								<td :colspan="countVisibleFields">
+									<component :is="detailRowComponent" :row-data="item" :row-index="index"></component>
+								</td>
+							</tr>
+						</transition>
+					</template>
+				</template>
+			</tbody>
+		</table>
+		<div v-show="showFieldsMenu">
+			<ul>
+				<li v-for="field in fields" :class="{ 'active': field.visible }">{{ field.title }}</li>
+			</ul>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -265,6 +272,7 @@
                 currentPage: 1,
                 selected: [],
                 selectedTo: [],
+				showFieldsMenu: false,
                 visibleDetailRows: [],
 				config: {}
             }
@@ -862,6 +870,16 @@
 				};
 
 				window.addEventListener('mouseup', onMouseUp);
+			},
+			openFieldsMenu: function(e) {
+				this.showFieldsMenu = true;
+
+				Vue.nextTick(function() {
+					this.$$.right.focus();
+					this.setMenu(e.y, e.x);
+				}.bind(this));
+
+				e.preventDefault();
 			}
         },
         watch: {
