@@ -10,7 +10,10 @@
 										:class="['vuetable-th-checkbox-'+trackBy, field.titleClass]"
 										:style="{ position: 'relative', width: field.width }">
 									<input type="checkbox" @change="toggleAllCheckboxes(field.name, $event)" :checked="checkCheckboxesState(field.name)">
-									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
 								</th>
 								<th v-if="extractName(field.name) == '__component'"
 										@click="orderBy(field, $event)"
@@ -21,7 +24,10 @@
 										:class="sortIcon(field)"
 										:style="{opacity: sortIconOpacity(field)}">
 									</i>
-									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
 								</th>
 								<th v-if="extractName(field.name) == '__slot'"
 										@click="orderBy(field, $event)"
@@ -32,17 +38,26 @@
 										:class="sortIcon(field)"
 										:style="{opacity: sortIconOpacity(field)}">
 									</i>
-									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
 								</th>
 								<th v-if="extractName(field.name) == '__sequence'"
 										:class="['vuetable-th-sequence', field.titleClass || '']" v-html="field.title || ''"
 										:style="{ position: 'relative', width: field.width }">
-									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
 								</th>
 								<th v-if="notIn(extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot'])"
 										:class="['vuetable-th-'+field.name, field.titleClass || '']" v-html="field.title || ''"
 										:style="{ position: 'relative', width: field.width }">
-									<span v-if="config.resizeColumns" style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"></span>
+									<span v-if="config.resizeColumns"
+										style="width:7px;height:100%;position:absolute;right:0;cursor:ew-resize;"
+										@mousedown="resizeColumn">
+									</span>
 								</th>
 							</template>
 							<template v-else>
@@ -492,11 +507,11 @@
             fieldIsInSortOrderPosition(field, i) {
                 return this.sortOrder[i].field === field.name && this.sortOrder[i].sortField === field.sortField;
             },
-            orderBy: function(field, event) {
+            orderBy: function(field, e) {
                 if(!this.isSortable(field)) return;
 
                 const key = this.multiSortKey.toLowerCase() + 'Key';
-                if(this.multiSort && event[key]){ // adding column to multisort
+                if(this.multiSort && e[key]){ // adding column to multisort
                     this.multiColumnSort(field);
                 }
 				else{
@@ -506,6 +521,8 @@
                 this.currentPage = 1; // reset page index
 				if(this.localData) this.sortLocalData();
 				else this.loadData();
+
+                e.preventDefault();
             },
             multiColumnSort: function(field) {
                 let i = this.currentSortOrderPosition(field);
@@ -870,6 +887,8 @@
 				};
 
 				window.addEventListener('mouseup', onMouseUp);
+
+                e.preventDefault();
 			},
 			openFieldsMenu: function(e) {
 				this.showFieldsMenu = true;
