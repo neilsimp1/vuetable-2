@@ -1,7 +1,7 @@
 <template>
-	<div>
+	<div style="position:relative;">
 		<table :class="['vuetable', css.tableClass]" :style="tableWidth">
-			<thead @click.right="openFieldsMenu">
+			<thead @contextmenu="openFieldsMenu">
 				<tr>
 					<template v-for="field in fields">
 						<template v-if="field.visible">
@@ -128,9 +128,13 @@
 				</template>
 			</tbody>
 		</table>
-		<div v-show="showFieldsMenu">
+		<div v-show="showFieldsMenu" :style="contextMenuStyle">
 			<ul>
-				<li v-for="field in fields" :class="{ 'active': field.visible }">{{ field.title }}</li>
+				<li v-for="field in fields"
+						@click="field.hideable ? toggleField(field) : null"
+						:class="{ 'active': field.visible }">
+					{{ field.title }}
+				</li>
 			</ul>
 		</div>
 	</div>
@@ -274,7 +278,12 @@
                 selectedTo: [],
 				showFieldsMenu: false,
                 visibleDetailRows: [],
-				config: {}
+				config: {},
+				contextMenuStyle: {
+					position: 'absolute',
+					top: 0,
+					left: 0
+				}
             }
         },
         created: function() {
@@ -305,7 +314,7 @@
 					if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ''));
 				}
 				if(width === 0) return null;
-				width += 6;//////////////////////////////////
+				width += 10;//////////////////////////////////
 
 				return { width: width + 'px' };
 			}
@@ -328,6 +337,7 @@
                             dataClass: '',
                             callback: null,
                             visible: true,
+							hideable: true,
                             selected: false,
 							width: null
                         };
@@ -341,6 +351,7 @@
                             dataClass: field.dataClass || '',
                             callback: field.callback || '',
                             visible: field.visible !== undefined ? field.visible : true,
+                            hideable: field.hideable !== undefined ? field.hideable : true,
                             selected: false,
 							width: field.width || null
                         };
@@ -873,13 +884,16 @@
 			},
 			openFieldsMenu: function(e) {
 				this.showFieldsMenu = true;
-
-				Vue.nextTick(function() {
-					this.$$.right.focus();
-					this.setMenu(e.y, e.x);
-				}.bind(this));
+				this.contextMenuStyle.top = e.offsetY + 'px';
+				this.contextMenuStyle.left = e.offsetX + 'px';
 
 				e.preventDefault();
+				//http://codepen.io/SimpleSoftwareIO/pen/yNwYJb
+			},
+			toggleField: function(field) {
+				field.visible = !field.visible;
+				this.showFieldsMenu = false;///// This probably should not be here, 
+				///////////////////////////////// and have menu close on click outside of menu
 			}
         },
         watch: {
