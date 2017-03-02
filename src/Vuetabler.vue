@@ -143,11 +143,11 @@
 				</template>
 			</tbody>
 		</table>
-		<div v-show="showFieldsMenu" :style="contextMenuStyle">
+		<div v-show="showFieldsMenu" :style="fieldsMenuPosition" :class="config.fieldsMenuClass">
 			<ul>
 				<li v-for="field in fields"
-						@click="field.hideable ? toggleField(field) : null"
-						:class="{ 'active': field.visible }">
+						@click="field.hideable ? toggleField($event, field) : null"
+						:class="{ 'active': field.visible, 'fixed': !field.hideable }">
 					{{ field.title }}
 				</li>
 			</ul>
@@ -294,7 +294,7 @@
 				showFieldsMenu: false,
                 visibleDetailRows: [],
 				config: {},
-				contextMenuStyle: {
+				fieldsMenuPosition: {
 					position: 'absolute',
 					top: 0,
 					left: 0
@@ -376,6 +376,7 @@
             },
 			initConfig: function() {
                 let obj = {
+					fieldsMenuClass: this.options.fieldsMenuClass ? this.options.fieldsMenuClass : [],
 					pinned: this.options.pinned ? this.options.pinned : [],
 					resizeColumns: this.options.resizeColumns !== undefined ? this.options.resizeColumns : false,
 					rowSelect: this.options.rowSelect !== undefined ? this.options.rowSelect : false
@@ -903,16 +904,19 @@
 			},
 			openFieldsMenu: function(e) {
 				this.showFieldsMenu = true;
-				this.contextMenuStyle.top = e.offsetY + 'px';
-				this.contextMenuStyle.left = e.offsetX + 'px';
-
+				this.fieldsMenuPosition.top = e.offsetY + 'px';
+				this.fieldsMenuPosition.left = e.offsetX + 'px';
 				e.preventDefault();
-				//http://codepen.io/SimpleSoftwareIO/pen/yNwYJb
+				
+				const closeMenu = e => {
+					this.showFieldsMenu = false;
+					window.removeEventListener('click', closeMenu);
+				};
+				window.addEventListener('click', closeMenu);
 			},
-			toggleField: function(field) {
+			toggleField: function(e, field) {
 				field.visible = !field.visible;
-				this.showFieldsMenu = false;///// This probably should not be here, 
-				///////////////////////////////// and have menu close on click outside of menu
+				e.stopPropagation();
 			}
         },
         watch: {
