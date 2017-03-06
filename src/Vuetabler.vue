@@ -1,5 +1,5 @@
 <template>
-	<div style="height:100%;">
+	<div style="position:relative;height:100%;">
 		<table :class="['vuetable', css.tableClass]" :style="tableWidth">
 			<thead @contextmenu="openFieldsMenu">
 				<tr>
