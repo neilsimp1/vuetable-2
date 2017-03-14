@@ -16516,6 +16516,11 @@ module.exports = Vue$2;
             this.initConfig();
             if(this.loadOnStart) this.loadData();
         },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.resizeLastColumn();                   
+            });
+        },
         computed: {
             useDetailRow: function() {
                 if(this.tableData && this.tableData[0] && typeof this.tableData[0][this.trackBy] === 'undefined'){
@@ -16532,17 +16537,17 @@ module.exports = Vue$2;
             },
             localData: function() {
                 return !!this.rows.length;
-            },
-			tableWidth: function() {
-				let width = 0;
-				for(const field of this.fields){
-					if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ''));
-				}
-				if(width === 0) return null;
-				width += 10;//////////////////////////////////
+            }//,
+			// tableWidth: function() {
+			// 	let width = 0;
+			// 	for(const field of this.fields){
+			// 		if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ""));
+			// 	}
+			// 	if(width === 0) return null;
+			// 	width += 10;////////////////////////////////// TODO: THIS IS HACKY
 
-				return { width: width + 'px' };
-			}
+			// 	return { width: width + 'px' };
+			// }
         },
         methods: {
             normalizeFields: function() {
@@ -16619,12 +16624,13 @@ module.exports = Vue$2;
                 return arr.indexOf(str) === -1
             },
             loadData: function(success = this.loadSuccess, failed = this.loadFailed) {
-                this.fireEvent('loading');
+                this.fireEvent("loading");
                 if(this.localData){
-                    success();
+                    this.$nextTick(success);
+                    //success();
                 }
                 else{
-                    // this.httpOptions['params'] = this.getAllQueryParams()
+                    // this.httpOptions["params"] = this.getAllQueryParams()
 
                     // Vue.http.get(this.apiUrl, this.httpOptions).then(
                     //     success,
@@ -16633,14 +16639,14 @@ module.exports = Vue$2;
                 }
             },
             loadSuccess: function(response) {
-                this.fireEvent('load-success', response);
+                this.fireEvent("load-success", response);
 
-                if(this.localData){
-                    if(this.config.rowSelect) this.tableData = this.rows.map(item => {
+                if (this.localData) {
+                    if (this.config.rowSelect) this.tableData = this.rows.map(item => {
                         item.selected = false;
                         return item;
                     });
-                    else this.tableData = this.rows;                    
+                    else this.tableData = this.rows;
                 }
                 // else{
                 //     let body = this.transform(response.body)
@@ -16657,9 +16663,9 @@ module.exports = Vue$2;
                 // }
 
                 this.$nextTick(function() {
-                    // this.fireEvent('pagination-data', this.tablePagination);
-                    this.fireEvent('loaded');
-                })
+                    this.fireEvent("pagination-data", this.tablePagination);
+                    this.fireEvent("loaded");                    
+                });
             },
             loadFailed: function(response) {
                 this.fireEvent('load-error', response);
@@ -17112,6 +17118,26 @@ module.exports = Vue$2;
 
                 e.preventDefault();
 			},
+            resizeLastColumn: function() {
+                const tableWidth = this.$el.children[0].clientWidth;
+                const colWidth = this.fields.reduce((acc, field) => {
+                    if(!field.visible) return acc;
+                    return acc + (field.width ? parseInt(field.width.replace(/\D/g, "")) : 0);
+                }, 0);
+                
+                let lastVisFieldIndex = 0;
+                for(let i = this.fields.length - 1; i > 0; i--){
+                    if(this.fields[i].visible){
+                        lastVisFieldIndex = i;
+                        break;
+                    }
+                }
+                
+                if(colWidth < tableWidth){
+                    const width = parseInt(this.fields[lastVisFieldIndex].width.replace(/\D/g, ""));
+                    this.fields[lastVisFieldIndex].width = (width + (tableWidth - colWidth)) + "px";
+                }
+            },
 			openFieldsMenu: function(e) {
 				this.showFieldsMenu = true;
 				this.fieldsMenuPosition.top = e.offsetY + 'px';
@@ -17139,17 +17165,14 @@ module.exports = Vue$2;
             rows: function(val) {
                 this.loadData();
             }
-        },
-    //});
+        }
     };
-
-    //module.exports = Vuetabler;
 
 })()
 if (module.exports.__esModule) module.exports = module.exports.default
 var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
 if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
-__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticStyle:{"position":"relative","height":"100%"}},[_c('table',{class:['vuetable', _vm.css.tableClass],style:(_vm.tableWidth)},[_c('thead',{on:{"contextmenu":_vm.openFieldsMenu}},[_c('tr',[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__checkbox')?_c('th',{class:['vuetable-th-checkbox-'+_vm.trackBy, field.titleClass],style:({ position: 'relative', width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.checkCheckboxesState(field.name)},on:{"change":function($event){_vm.toggleAllCheckboxes(field.name, $event)}}}),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__component')?_c('th',{class:['vuetable-th-component-'+_vm.trackBy, field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(field.title || '')+"\n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__slot')?_c('th',{class:['vuetable-th-slot-'+_vm.extractArgs(field.name), field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(field.title || '')+"\n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__sequence')?_c('th',{class:['vuetable-th-sequence', field.titleClass || ''],style:({ position: 'relative', width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}},[(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.notIn(_vm.extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot']))?_c('th',{class:['vuetable-th-'+field.name, field.titleClass || ''],style:({ position: 'relative', width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}},[(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e()]:[_c('th',{class:['vuetable-th-'+field.name, field.titleClass,  {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),attrs:{"id":'_' + field.name},on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(_vm.getTitle(field))+" \n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field))?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()])]]:_vm._e()]})],2)]),_vm._v(" "),_c('tbody',{},[_vm._l((_vm.tableData),function(item,index){return [_c('tr',{class:[_vm.onRowClass(item, index), _vm.selected.indexOf(item[_vm.idField]) !== -1 ? 'selected' : ''],attrs:{"render":_vm.onRowChanged(item)},on:{"dblclick":function($event){_vm.onRowDoubleClicked(item, $event)},"click":function($event){_vm.onRowClicked(item, $event)}}},[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__sequence')?_c('td',{class:['vuetable-sequence', field.dataClass],style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.tablePagination.from + index)}}):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__handle')?_c('td',{class:['vuetable-handle', field.dataClass],style:({ width: field.width })},[_c('i',{class:['sort-handle', _vm.css.sortHandleIcon]})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__checkbox')?_c('td',{class:['vuetable-checkboxes', field.dataClass],style:({ width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.rowSelected(item, field.name)},on:{"change":function($event){_vm.toggleCheckbox(item, field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__component')?_c('td',{class:['vuetable-component', field.dataClass],style:({ width: field.width })},[_c(_vm.extractArgs(field.name),{tag:"component",attrs:{"row-data":item,"row-index":index}})],1):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__slot')?_c('td',{class:['vuetable-slot', field.dataClass],style:({ width: field.width })},[_vm._t(_vm.extractArgs(field.name),null,{rowData:item,rowIndex:index})],2):_vm._e()]:[(_vm.hasCallback(field))?_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.callCallback(field, item))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}}):_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.getObjectValue(item, field.name, ''))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}})]]:_vm._e()]})],2),_vm._v(" "),(_vm.useDetailRow)?[_c('transition',{attrs:{"name":_vm.detailRowTransition}},[(_vm.isVisibleDetailRow(item[_vm.trackBy]))?_c('tr',{class:[_vm.css.detailRowClass],on:{"click":function($event){_vm.onDetailRowClick(item, $event)}}},[_c('td',{attrs:{"colspan":_vm.countVisibleFields}},[_c(_vm.detailRowComponent,{tag:"component",attrs:{"row-data":item,"row-index":index}})],1)]):_vm._e()])]:_vm._e()]})],2)]),_vm._v(" "),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showFieldsMenu),expression:"showFieldsMenu"}],class:_vm.config.fieldsMenuClass,style:(_vm.fieldsMenuPosition)},[_c('ul',_vm._l((_vm.fields),function(field){return _c('li',{class:{ 'active': field.visible, 'fixed': !field.hideable },on:{"click":function($event){field.hideable ? _vm.toggleField($event, field) : null}}},[_vm._v("\n\t\t\t\t"+_vm._s(field.title)+"\n\t\t\t")])}))])])}
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticStyle:{"position":"relative","height":"100%"}},[_c('table',{class:['vuetable', _vm.css.tableClass]},[_c('thead',{on:{"contextmenu":_vm.openFieldsMenu}},[_c('tr',[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__checkbox')?_c('th',{class:['vuetable-th-checkbox-'+_vm.trackBy, field.titleClass],style:({ position: 'relative', width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.checkCheckboxesState(field.name)},on:{"change":function($event){_vm.toggleAllCheckboxes(field.name, $event)}}}),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__component')?_c('th',{class:['vuetable-th-component-'+_vm.trackBy, field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(field.title || '')+"\n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__slot')?_c('th',{class:['vuetable-th-slot-'+_vm.extractArgs(field.name), field.titleClass, {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(field.title || '')+"\n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field) && field.title)?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__sequence')?_c('th',{class:['vuetable-th-sequence', field.titleClass || ''],style:({ position: 'relative', width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}},[(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e(),_vm._v(" "),(_vm.notIn(_vm.extractName(field.name), ['__sequence', '__checkbox', '__component', '__slot']))?_c('th',{class:['vuetable-th-'+field.name, field.titleClass || ''],style:({ position: 'relative', width: field.width }),domProps:{"innerHTML":_vm._s(field.title || '')}},[(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()]):_vm._e()]:[_c('th',{class:['vuetable-th-'+field.name, field.titleClass,  {'sortable': _vm.isSortable(field)}],style:({ position: 'relative', width: field.width }),attrs:{"id":'_' + field.name},on:{"click":function($event){_vm.orderBy(field, $event)}}},[_vm._v("\n\t\t\t\t\t\t\t\t"+_vm._s(_vm.getTitle(field))+" \n\t\t\t\t\t\t\t\t"),(_vm.isInCurrentSortGroup(field))?_c('i',{class:_vm.sortIcon(field),style:({opacity: _vm.sortIconOpacity(field)})}):_vm._e(),_vm._v(" "),(_vm.config.resizeColumns)?_c('span',{staticStyle:{"width":"7px","height":"100%","position":"absolute","right":"0","cursor":"ew-resize"},on:{"mousedown":_vm.resizeColumn}}):_vm._e()])]]:_vm._e()]})],2)]),_vm._v(" "),_c('tbody',{},[_vm._l((_vm.tableData),function(item,index){return [_c('tr',{class:[_vm.onRowClass(item, index), _vm.selected.indexOf(item[_vm.idField]) !== -1 ? 'selected' : ''],attrs:{"render":_vm.onRowChanged(item)},on:{"dblclick":function($event){_vm.onRowDoubleClicked(item, $event)},"click":function($event){_vm.onRowClicked(item, $event)}}},[_vm._l((_vm.fields),function(field){return [(field.visible)?[(_vm.isSpecialField(field.name))?[(_vm.extractName(field.name) == '__sequence')?_c('td',{class:['vuetable-sequence', field.dataClass],style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.tablePagination.from + index)}}):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__handle')?_c('td',{class:['vuetable-handle', field.dataClass],style:({ width: field.width })},[_c('i',{class:['sort-handle', _vm.css.sortHandleIcon]})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) == '__checkbox')?_c('td',{class:['vuetable-checkboxes', field.dataClass],style:({ width: field.width })},[_c('input',{attrs:{"type":"checkbox"},domProps:{"checked":_vm.rowSelected(item, field.name)},on:{"change":function($event){_vm.toggleCheckbox(item, field.name, $event)}}})]):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__component')?_c('td',{class:['vuetable-component', field.dataClass],style:({ width: field.width })},[_c(_vm.extractArgs(field.name),{tag:"component",attrs:{"row-data":item,"row-index":index}})],1):_vm._e(),_vm._v(" "),(_vm.extractName(field.name) === '__slot')?_c('td',{class:['vuetable-slot', field.dataClass],style:({ width: field.width })},[_vm._t(_vm.extractArgs(field.name),null,{rowData:item,rowIndex:index})],2):_vm._e()]:[(_vm.hasCallback(field))?_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.callCallback(field, item))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}}):_c('td',{class:field.dataClass,style:({ width: field.width }),domProps:{"innerHTML":_vm._s(_vm.getObjectValue(item, field.name, ''))},on:{"click":function($event){_vm.onCellClicked(item, field, $event)},"dblclick":function($event){_vm.onCellDoubleClicked(item, field, $event)}}})]]:_vm._e()]})],2),_vm._v(" "),(_vm.useDetailRow)?[_c('transition',{attrs:{"name":_vm.detailRowTransition}},[(_vm.isVisibleDetailRow(item[_vm.trackBy]))?_c('tr',{class:[_vm.css.detailRowClass],on:{"click":function($event){_vm.onDetailRowClick(item, $event)}}},[_c('td',{attrs:{"colspan":_vm.countVisibleFields}},[_c(_vm.detailRowComponent,{tag:"component",attrs:{"row-data":item,"row-index":index}})],1)]):_vm._e()])]:_vm._e()]})],2)]),_vm._v(" "),_c('div',{directives:[{name:"show",rawName:"v-show",value:(_vm.showFieldsMenu),expression:"showFieldsMenu"}],class:_vm.config.fieldsMenuClass,style:(_vm.fieldsMenuPosition)},[_c('ul',_vm._l((_vm.fields),function(field){return _c('li',{class:{ 'active': field.visible, 'fixed': !field.hideable },on:{"click":function($event){field.hideable ? _vm.toggleField($event, field) : null}}},[_vm._v("\n\t\t\t\t"+_vm._s(field.title)+"\n\t\t\t")])}))])])}
 __vue__options__.staticRenderFns = []
 if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)

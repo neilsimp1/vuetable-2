@@ -1,6 +1,6 @@
 <template>
 	<div style="position:relative;height:100%;">
-		<table :class="['vuetable', css.tableClass]" :style="tableWidth">
+		<table :class="['vuetable', css.tableClass]"><!-- :style="tableWidth" -->
 			<thead @contextmenu="openFieldsMenu">
 				<tr>
 					<template v-for="field in fields">
@@ -306,6 +306,11 @@
             this.initConfig();
             if(this.loadOnStart) this.loadData();
         },
+        mounted: function() {
+            this.$nextTick(function() {
+                this.resizeLastColumn();                   
+            });
+        },
         computed: {
             useDetailRow: function() {
                 if(this.tableData && this.tableData[0] && typeof this.tableData[0][this.trackBy] === 'undefined'){
@@ -322,17 +327,17 @@
             },
             localData: function() {
                 return !!this.rows.length;
-            },
-			tableWidth: function() {
-				let width = 0;
-				for(const field of this.fields){
-					if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ''));
-				}
-				if(width === 0) return null;
-				width += 10;//////////////////////////////////
+            }//,
+			// tableWidth: function() {
+			// 	let width = 0;
+			// 	for(const field of this.fields){
+			// 		if(field.visible && field.width) width += parseInt(field.width.replace(/\D/g, ""));
+			// 	}
+			// 	if(width === 0) return null;
+			// 	width += 10;////////////////////////////////// TODO: THIS IS HACKY
 
-				return { width: width + 'px' };
-			}
+			// 	return { width: width + 'px' };
+			// }
         },
         methods: {
             normalizeFields: function() {
@@ -409,12 +414,13 @@
                 return arr.indexOf(str) === -1
             },
             loadData: function(success = this.loadSuccess, failed = this.loadFailed) {
-                this.fireEvent('loading');
+                this.fireEvent("loading");
                 if(this.localData){
-                    success();
+                    this.$nextTick(success);
+                    //success();
                 }
                 else{
-                    // this.httpOptions['params'] = this.getAllQueryParams()
+                    // this.httpOptions["params"] = this.getAllQueryParams()
 
                     // Vue.http.get(this.apiUrl, this.httpOptions).then(
                     //     success,
@@ -423,14 +429,14 @@
                 }
             },
             loadSuccess: function(response) {
-                this.fireEvent('load-success', response);
+                this.fireEvent("load-success", response);
 
-                if(this.localData){
-                    if(this.config.rowSelect) this.tableData = this.rows.map(item => {
+                if (this.localData) {
+                    if (this.config.rowSelect) this.tableData = this.rows.map(item => {
                         item.selected = false;
                         return item;
                     });
-                    else this.tableData = this.rows;                    
+                    else this.tableData = this.rows;
                 }
                 // else{
                 //     let body = this.transform(response.body)
@@ -447,9 +453,9 @@
                 // }
 
                 this.$nextTick(function() {
-                    // this.fireEvent('pagination-data', this.tablePagination);
-                    this.fireEvent('loaded');
-                })
+                    this.fireEvent("pagination-data", this.tablePagination);
+                    this.fireEvent("loaded");                    
+                });
             },
             loadFailed: function(response) {
                 this.fireEvent('load-error', response);
@@ -902,6 +908,26 @@
 
                 e.preventDefault();
 			},
+            resizeLastColumn: function() {
+                const tableWidth = this.$el.children[0].clientWidth;
+                const colWidth = this.fields.reduce((acc, field) => {
+                    if(!field.visible) return acc;
+                    return acc + (field.width ? parseInt(field.width.replace(/\D/g, "")) : 0);
+                }, 0);
+                
+                let lastVisFieldIndex = 0;
+                for(let i = this.fields.length - 1; i > 0; i--){
+                    if(this.fields[i].visible){
+                        lastVisFieldIndex = i;
+                        break;
+                    }
+                }
+                
+                if(colWidth < tableWidth){
+                    const width = parseInt(this.fields[lastVisFieldIndex].width.replace(/\D/g, ""));
+                    this.fields[lastVisFieldIndex].width = (width + (tableWidth - colWidth)) + "px";
+                }
+            },
 			openFieldsMenu: function(e) {
 				this.showFieldsMenu = true;
 				this.fieldsMenuPosition.top = e.offsetY + 'px';
@@ -929,9 +955,6 @@
             rows: function(val) {
                 this.loadData();
             }
-        },
-    //});
+        }
     };
-
-    //module.exports = Vuetabler;
 </script>
