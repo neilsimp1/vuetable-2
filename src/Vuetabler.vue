@@ -817,19 +817,19 @@
                 return true;
             },
             onRowClicked: function(dataItem, e) {
-                this.$root.$emit(this.eventPrefix + 'row-clicked', dataItem, e);
+                this.$root.$emit(this.eventPrefix + "row-clicked", dataItem, e);
 				
-                if(this.config.rowSelect){
-                    if(e.shiftKey && dataItem[this.idField]) this.selectRow_shift(dataItem);
-                    else if(e.ctrlKey && dataItem[this.idField]) this.selectRow_ctrl(dataItem);
+                if (this.config.rowSelect) {
+                    if (e.shiftKey && dataItem[this.idField]) this.selectRow_shift(dataItem);
+                    else if (e.ctrlKey && dataItem[this.idField]) this.selectRow_ctrl(dataItem);
                     else this.selectRow(dataItem);
-					this.fireEvent('rows-selected', this.selected);
+					this.fireEvent("rows-selected", this.selected);
                 }
 
                 return true;
             },
             onRowDoubleClicked: function(dataItem, e) {
-                this.$root.$emit(this.eventPrefix + 'row-dblclicked', dataItem, e);
+                this.$root.$emit(this.eventPrefix + "row-dblclicked", dataItem, e);
             },
             onDetailRowClick: function(dataItem, e) {
                 this.$root.$emit(this.eventPrefix + 'detail-row-clicked', dataItem, e);
