@@ -359,6 +359,8 @@
                             visible: true,
 							hideable: true,
                             selected: false,
+                            sortField: field,
+                            sortType: "string",
 							width: null
                         };
                     }
@@ -373,6 +375,8 @@
                             visible: field.visible !== undefined ? field.visible : true,
                             hideable: field.hideable !== undefined ? field.hideable : true,
                             selected: false,
+                            sortField: field.sortField || "string",
+                            sortType: field.sortType || "number",
 							width: field.width || null
                         };
                     }
@@ -579,15 +583,21 @@
 			sortLocalData: function() {
 				// TODO: This only handles single column sort at the moment
 				this.tableData.sort((a, b) => {
+                    const sortType = this.fields.find(f => f.sortField = this.sortOrder[0].sortField).sortType;
 					const isPinned = this.config.pinned.some(pinned => a.name === pinned);
 					if(isPinned) return -1;
 
 					let x, y;
-					if(typeof a[this.sortOrder[0].sortField] === 'string')
-						x = a[this.sortOrder[0].sortField].toLowerCase(), y = b[this.sortOrder[0].sortField].toLowerCase();
+					if (sortType === "string") {
+						x = (a[this.sortOrder[0].sortField] || "").toLowerCase();
+                        y = (b[this.sortOrder[0].sortField] || "").toLowerCase();
+                    }
+                    else if (sortType === "number") {
+                        x = a[this.sortOrder[0].sortField], y = b[this.sortOrder[0].sortField];
+                    }
 					else x = a, y = b;
 					
-					if(this.sortOrder[0].direction === 'desc') [x, y] = [y, x];
+					if(this.sortOrder[0].direction === "desc") [x, y] = [y, x];
 					if(x < y) return -1;
 					if(x > y) return 1;
 					return 0;
@@ -819,7 +829,7 @@
                 return true;
             },
             onRowDoubleClicked: function(dataItem, e) {
-                this.$aroot.$emit(this.eventPrefix + 'row-dblclicked', dataItem, e);
+                this.$root.$emit(this.eventPrefix + 'row-dblclicked', dataItem, e);
             },
             onDetailRowClick: function(dataItem, e) {
                 this.$root.$emit(this.eventPrefix + 'detail-row-clicked', dataItem, e);
@@ -922,7 +932,7 @@
                         break;
                     }
                 }
-                
+
                 if(colWidth < tableWidth){
                     const width = parseInt(this.fields[lastVisFieldIndex].width.replace(/\D/g, ""));
                     this.fields[lastVisFieldIndex].width = (width + (tableWidth - colWidth)) + "px";
